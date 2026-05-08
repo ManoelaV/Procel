@@ -9,7 +9,6 @@ PROCEL é uma aplicação mobile desenvolvida em Flutter que ajuda usuários a m
 ### Estrutura Base
 - Projeto Flutter configurado e pronto para desenvolvimento
 - Integração com Firebase (Authentication, Firestore, Cloud Functions, Dynamic Links)
-- Suporte para plataformas Android, iOS e Web
 - State management com Provider
 - Arquitetura organizada com separação de responsabilidades
 
@@ -106,5 +105,3 @@ flutter build web
 ## Próximos Passos
 
 O projeto está em desenvolvimento contínuo. Novas funcionalidades serão adicionadas conforme o projeto avança.
-
-Para maiores informações ou contribuições, abra uma issue no repositório.
