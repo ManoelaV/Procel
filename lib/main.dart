@@ -1,0 +1,738 @@
+﻿import 'package:flutter/material.dart';
+
+void main() => runApp(const EcoApp());
+
+class EcoApp extends StatelessWidget {
+  const EcoApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'PROCEL',
+      theme: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF7FBFA),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1F7A75),
+          brightness: Brightness.light,
+        ),
+      ),
+      home: const ShellPage(),
+    );
+  }
+}
+
+class ShellPage extends StatefulWidget {
+  const ShellPage({super.key});
+
+  @override
+  State<ShellPage> createState() => _ShellPageState();
+}
+
+class _ShellPageState extends State<ShellPage> {
+  int index = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = <Widget>[
+      const HomeScreen(),
+      const MissionsScreen(),
+      const RankingScreen(),
+      const BadgesScreen(),
+      const ProfileScreen(),
+    ];
+
+    return Scaffold(
+      body: IndexedStack(index: index, children: pages),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: index,
+        onDestinationSelected: (value) => setState(() => index = value),
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home_rounded), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.assignment_rounded), label: 'Missões'),
+          NavigationDestination(icon: Icon(Icons.leaderboard_rounded), label: 'Ranking'),
+          NavigationDestination(icon: Icon(Icons.military_tech_rounded), label: 'Badges'),
+          NavigationDestination(icon: Icon(Icons.person_rounded), label: 'Perfil'),
+        ],
+      ),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _PageScaffold(
+      title: '👋 Olá, João!',
+      subtitle: 'Level 4: Campeão Sustentável',
+      progress: 0.84,
+      progressLabel: '4.200 / 5.000 XP',
+      child: _HomeBody(),
+    );
+  }
+}
+
+class MissionsScreen extends StatelessWidget {
+  const MissionsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _PageScaffold(
+      title: '🎮 Missões',
+      subtitle: '3/5 diárias concluídas',
+      progress: 0.6,
+      progressLabel: '3/5 diárias concluídas',
+      child: _MissionsBody(),
+    );
+  }
+}
+
+class RankingScreen extends StatelessWidget {
+  const RankingScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _PageScaffold(
+      title: '🏆 Ranking',
+      subtitle: 'Competição saudável e motivadora',
+      progress: 0.75,
+      progressLabel: 'Você está em 3º lugar',
+      child: _RankingBody(),
+    );
+  }
+}
+
+class BadgesScreen extends StatelessWidget {
+  const BadgesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _PageScaffold(
+      title: '🎖️ Conquistas',
+      subtitle: '12 / 30 badges desbloqueados',
+      progress: 0.4,
+      progressLabel: '40% completado',
+      child: _BadgesBody(),
+    );
+  }
+}
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _PageScaffold(
+      title: '👤 Perfil',
+      subtitle: 'João Pedro Santos',
+      progress: 0.72,
+      progressLabel: 'Streak 23 dias',
+      child: _ProfileBody(),
+    );
+  }
+}
+
+class _PageScaffold extends StatelessWidget {
+  const _PageScaffold({
+    required this.title,
+    required this.subtitle,
+    required this.progress,
+    required this.progressLabel,
+    required this.child,
+  });
+
+  final String title;
+  final String subtitle;
+  final double progress;
+  final String progressLabel;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1F7A75), Color(0xFF135C58)],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x221F7A75), blurRadius: 20, offset: Offset(0, 10)),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 8),
+                  Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                  const SizedBox(height: 16),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 18,
+                      backgroundColor: Colors.white24,
+                      valueColor: const AlwaysStoppedAnimation(Color(0xFFFFC857)),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(progressLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeBody extends StatelessWidget {
+  const _HomeBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        _SectionTitle('📊 Seu impacto'),
+        SizedBox(height: 12),
+        _StatsGrid(),
+        SizedBox(height: 24),
+        _SectionTitle('🎯 Próximas missões'),
+        SizedBox(height: 12),
+        _MissionCard(title: 'Luz Eficiente', icon: '💡', description: 'Desligue 3 luzes desnecessárias', progress: 0.66, xp: '25 XP', coins: '+10 moedas', buttonLabel: 'Completar'),
+        _MissionCard(title: 'Temperatura Inteligente', icon: '❄️', description: 'Ajuste o AC para 24°C', progress: 0.0, xp: '25 XP', buttonLabel: 'Começar'),
+        _MissionCard(title: 'Sensor Scout', icon: '🔍', description: 'Verifique 2 salas e reporte anomalias', progress: 0.5, xp: '20 XP', coins: '+5 moedas', buttonLabel: 'Continuar'),
+      ],
+    );
+  }
+}
+
+class _MissionsBody extends StatelessWidget {
+  const _MissionsBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        _SectionTitle('📅 Missões diárias'),
+        SizedBox(height: 12),
+        _MissionCard(title: 'Luz Eficiente', icon: '💡', description: 'Desligar pelo menos 3 luzes', progress: 1, xp: '25 XP', coins: '+10 moedas', buttonLabel: 'Concluída', completed: true),
+        _MissionCard(title: 'Hora do Repouso', icon: '🔌', description: 'Desligar equipamentos em standby', progress: 1, xp: '25 XP', coins: '+10 moedas', buttonLabel: 'Concluída', completed: true),
+        _MissionCard(title: 'Educar é Compartilhar', icon: '💬', description: 'Compartilhar 1 dica de economia', progress: 1, xp: '15 XP', buttonLabel: 'Concluída', completed: true),
+        SizedBox(height: 24),
+        _SectionTitle('🎖️ Desafio da semana'),
+        SizedBox(height: 12),
+        _ChallengeCard(title: 'Semana de Energia Mínima', description: 'Reduza o consumo da sala em 25%', progress: 0.7, progressText: '35 / 50 kWh (70%)', timeLeft: '5 dias restantes', rewards: ['200 XP', '📊 Badge', '+25 moedas']),
+      ],
+    );
+  }
+}
+
+class _RankingBody extends StatelessWidget {
+  const _RankingBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        _SectionTitle('🌍 Ranking global'),
+        SizedBox(height: 12),
+        _LeaderboardCard(items: [
+          _LeaderboardItem(rank: '🥇', name: 'Maria Silva', level: 'Level 6: Herói Ambiental', xp: '8.500 XP', streak: '45 🔥', highlight: false),
+          _LeaderboardItem(rank: '🥈', name: 'João Santos', level: 'Level 5: Mestre da Economia', xp: '6.200 XP', streak: '32 🔥', highlight: false),
+          _LeaderboardItem(rank: '🥉', name: 'Você (João Pedro)', level: 'Level 4: Campeão Sustentável', xp: '4.200 XP', streak: '23 🔥', highlight: true),
+        ]),
+        SizedBox(height: 24),
+        _SectionTitle('🏫 Ranking de salas'),
+        SizedBox(height: 12),
+        _LeaderboardCard(items: [
+          _LeaderboardItem(rank: '🥇', name: 'Sala 304', level: '8/10 alunos participando', xp: '-35%', streak: 'Economia', highlight: false),
+          _LeaderboardItem(rank: '🥈', name: 'Sala 101 (Sua Sala)', level: '9/10 alunos participando', xp: '-28%', streak: 'Economia', highlight: true),
+        ]),
+      ],
+    );
+  }
+}
+
+class _BadgesBody extends StatelessWidget {
+  const _BadgesBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        _SectionTitle('🌱 Sustentabilidade'),
+        SizedBox(height: 12),
+        _BadgeGrid(items: [
+          _BadgeItem(icon: '🌱', name: 'Novato Eco', unlocked: true, progress: 'Desbloqueado'),
+          _BadgeItem(icon: '♻️', name: 'Guardião Verde', unlocked: true, progress: 'Desbloqueado'),
+          _BadgeItem(icon: '🌍', name: 'Herói Ambiental', unlocked: true, progress: 'Desbloqueado'),
+          _BadgeItem(icon: '👑', name: 'Lenda Sustentável', unlocked: false, progress: 'Próximo: 10.000 XP'),
+        ]),
+      ],
+    );
+  }
+}
+
+class _ProfileBody extends StatelessWidget {
+  const _ProfileBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        _ProfileHeader(name: 'João Pedro Santos', title: 'Level 4: Campeão Sustentável', avatar: '🌟'),
+        SizedBox(height: 18),
+        _SectionTitle('📊 Estatísticas'),
+        SizedBox(height: 12),
+        _StatsGrid(daily: '125 kWh', total: '62.5 kg', third: '240 moedas', streak: '23 🔥'),
+        SizedBox(height: 18),
+        _SectionTitle('🎖️ Badges recentes'),
+        SizedBox(height: 12),
+        _RecentBadgesRow(),
+      ],
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Text(text, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800));
+}
+
+class _StatsGrid extends StatelessWidget {
+  const _StatsGrid({this.daily = '2.5 kWh', this.total = '125 kWh', this.third = '62.5 kg', this.streak = '23 🔥'});
+
+  final String daily;
+  final String total;
+  final String third;
+  final String streak;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.45,
+      ),
+      children: [
+        _StatCard(value: daily, label: 'Economizado hoje', color: Color(0xFF27AE60)),
+        _StatCard(value: total, label: 'Total do semestre', color: Color(0xFFE67E22)),
+        _StatCard(value: third, label: 'CO₂ evitado', color: Color(0xFF32B8C6)),
+        _StatCard(value: streak, label: 'Dias de streak', color: Color(0xFFF39C12)),
+      ],
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.value, required this.label, required this.color});
+
+  final String value;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border(left: BorderSide(color: color, width: 4)),
+        boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 8, offset: Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(value, style: TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 6),
+          Text(label, style: const TextStyle(color: Color(0xFF7F8C8D), fontSize: 12, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+}
+
+class _MissionCard extends StatelessWidget {
+  const _MissionCard({required this.title, required this.icon, required this.description, required this.progress, required this.xp, required this.buttonLabel, this.coins, this.completed = false});
+
+  final String title;
+  final String icon;
+  final String description;
+  final double progress;
+  final String xp;
+  final String? coins;
+  final String buttonLabel;
+  final bool completed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: completed ? const Color(0xFF27AE60) : const Color(0xFFECF0F1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                    const SizedBox(height: 8),
+                    Text(description, style: const TextStyle(color: Color(0xFF7F8C8D), fontSize: 13)),
+                  ],
+                ),
+              ),
+              Text(icon, style: const TextStyle(fontSize: 24)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: const Color(0xFFECF0F1),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF1F7A75)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _Pill(text: xp, background: const Color(0xFFE8F5E9), foreground: const Color(0xFF27AE60)),
+              if (coins != null)
+                _Pill(text: coins!, background: const Color(0xFFFFF8E1), foreground: const Color(0xFFE67E22)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: completed ? Colors.white : const Color(0xFF1F7A75),
+                foregroundColor: completed ? const Color(0xFF27AE60) : Colors.white,
+                side: BorderSide(color: completed ? const Color(0xFF27AE60) : Colors.transparent),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: Text(completed ? 'Concluída' : buttonLabel, style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChallengeCard extends StatelessWidget {
+  const _ChallengeCard({required this.title, required this.description, required this.progress, required this.progressText, required this.timeLeft, required this.rewards});
+
+  final String title;
+  final String description;
+  final double progress;
+  final String progressText;
+  final String timeLeft;
+  final List<String> rewards;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFECF0F1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          Text(description, style: const TextStyle(fontSize: 13, color: Color(0xFF7F8C8D))),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: const Color(0xFFECF0F1),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF1F7A75)),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(progressText, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              Text('⏱️ $timeLeft', style: const TextStyle(fontSize: 12, color: Color(0xFFF39C12), fontWeight: FontWeight.w600)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: rewards
+                .map((reward) => _Pill(text: reward, background: const Color(0xFFF8F9FA), foreground: const Color(0xFF1F7A75)))
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LeaderboardCard extends StatelessWidget {
+  const _LeaderboardCard({required this.items});
+
+  final List<_LeaderboardItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 10, offset: Offset(0, 4))],
+      ),
+      child: Column(children: items),
+    );
+  }
+}
+
+class _LeaderboardItem extends StatelessWidget {
+  const _LeaderboardItem({required this.rank, required this.name, required this.level, required this.xp, required this.streak, required this.highlight});
+
+  final String rank;
+  final String name;
+  final String level;
+  final String xp;
+  final String streak;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: highlight ? const Color(0xFFF1FBFC) : Colors.white,
+        border: const Border(bottom: BorderSide(color: Color(0xFFECF0F1))),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          SizedBox(width: 40, child: Text(rank, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF1F7A75)))),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 4),
+                Text(level, style: const TextStyle(fontSize: 12, color: Color(0xFF7F8C8D))),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(xp, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1F7A75))),
+              const SizedBox(height: 4),
+              Text(streak, style: const TextStyle(fontSize: 12, color: Color(0xFF7F8C8D))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BadgeGrid extends StatelessWidget {
+  const _BadgeGrid({required this.items});
+
+  final List<_BadgeItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.1,
+      ),
+      itemBuilder: (context, index) => _BadgeCard(item: items[index]),
+    );
+  }
+}
+
+class _BadgeItem {
+  const _BadgeItem({required this.icon, required this.name, required this.unlocked, required this.progress});
+
+  final String icon;
+  final String name;
+  final bool unlocked;
+  final String progress;
+}
+
+class _BadgeCard extends StatelessWidget {
+  const _BadgeCard({required this.item});
+
+  final _BadgeItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: item.unlocked ? const Color(0xFF32B8C6) : const Color(0xFFECF0F1)),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(item.icon, style: const TextStyle(fontSize: 30)),
+          const SizedBox(height: 8),
+          Text(item.name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 6),
+          Text(item.progress, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10, color: Color(0xFF7F8C8D))),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.name, required this.title, required this.avatar});
+
+  final String name;
+  final String title;
+  final String avatar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFF1F7A75), Color(0xFF135C58)]),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          CircleAvatar(radius: 36, backgroundColor: Colors.white24, child: Text(avatar, style: const TextStyle(fontSize: 34))),
+          const SizedBox(height: 12),
+          Text(name, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 6),
+          Text(title, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecentBadgesRow extends StatelessWidget {
+  const _RecentBadgesRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: const [
+        Expanded(child: _MiniBadge(icon: '♻️', label: 'Guardião Verde')),
+        SizedBox(width: 12),
+        Expanded(child: _MiniBadge(icon: '🔥', label: '7 Days Strong')),
+        SizedBox(width: 12),
+        Expanded(child: _MiniBadge(icon: '💡', label: 'Apagador Ninja')),
+      ],
+    );
+  }
+}
+
+class _MiniBadge extends StatelessWidget {
+  const _MiniBadge({required this.icon, required this.label});
+
+  final String icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF32B8C6)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          Text(icon, style: const TextStyle(fontSize: 28)),
+          const SizedBox(height: 8),
+          Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({required this.text, required this.background, required this.foreground});
+
+  final String text;
+  final Color background;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(text, style: TextStyle(color: foreground, fontWeight: FontWeight.w700, fontSize: 12)),
+    );
+  }
+}

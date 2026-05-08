@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "670726744771",
+    "project_id": "diabetes-app-2-dhvrsv",
+    "storage_bucket": "diabetes-app-2-dhvrsv.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:670726744771:android:584871eea25c9781745076",
+        "android_client_info": {
+          "package_name": "com.mycompany.movere"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqW719H47GyE1nPAlDo3vw-K7xXLyj0BM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

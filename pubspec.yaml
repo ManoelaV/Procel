@@ -1,0 +1,46 @@
+name: procel
+description: PROCEL - App de Economia de Energia Gamificado
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.11.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.1.5+1
+
+  # HTTP requests (para API)
+  http: ^1.1.0
+
+  # JSON serialization (opcional, mas recomendado)
+  json_annotation: ^4.9.0
+
+  # Local storage (opcional)
+  shared_preferences: ^2.2.2
+  # Postgres client for direct DB connections (dev)
+  postgres: ^2.5.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/audios/
+    - assets/jsons/
+    - assets/pdfs/
+    - assets/rive_animations/
+    - assets/videos/

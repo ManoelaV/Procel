@@ -1,0 +1,72 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "notificacoes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "id_usuario",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "data",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Questionario",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Id_usuario",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "data_submissao",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "metas_dia",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "id_usuario",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "data",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "login_diario",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "id_usuario",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "data",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "fcm_tokens",
+      "fieldPath": "fcm_token",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    }
+  ]
+}
