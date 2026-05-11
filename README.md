@@ -2,7 +2,7 @@
 
 ## O que é PROCEL?
 
-PROCEL é uma aplicação mobile desenvolvida em Flutter que ajuda usuários a monitorar e economizar energia de forma gamificada. O aplicativo está sendo construído com Flutter e utiliza Firebase como backend.
+PROCEL é uma aplicação mobile desenvolvida em Flutter que ajuda usuários a monitorar e economizar energia de forma gamificada. O app conversa com um back-end Java separado, hospedado neste repositório como submodule, e ainda mantém a camada Firebase para recursos legados e de suporte.
 
 ## O que já foi implementado?
 
@@ -29,16 +29,11 @@ PROCEL é uma aplicação mobile desenvolvida em Flutter que ajuda usuários a m
 - Componentes reutilizáveis para interface
 
 ### Backend e Banco de Dados
-- Modelos Firestore implementados:
-  - UsersRecord (dados de usuários)
-  - MetasRecord (metas de economia)
-  - NotificacoesRecord (notificações)
-  - QuestionarioRecord (questionários)
-  - BPNSRecord (registro BPNS)
-  - E outros esquemas específicos
-- Integração com APIs externas
-- Cloud Functions para lógica de servidor
-- Regras de segurança Firestore configuradas
+- Back-end Java/Spring Boot separado em `backend-repo/Procel-Ingestion`
+- PostgreSQL como banco do serviço de ingestão
+- Endpoints REST para autenticação, pessoas, presenças, sensores, medições, salas e regras
+- Firestore continua disponível para partes legadas do app e sincronizações específicas
+- Cloud Functions continuam no ecossistema Firebase quando necessário
 
 ### Recursos Adicionais
 - Sistema de notificações push
@@ -56,6 +51,9 @@ PROCEL é uma aplicação mobile desenvolvida em Flutter que ajuda usuários a m
 git clone https://github.com/ManoelaV/Procel.git
 cd Procel
 
+# Baixar o back-end como submodule
+git submodule update --init --recursive
+
 # Instalar dependências
 flutter pub get
 ```
@@ -63,8 +61,14 @@ flutter pub get
 ### Executar
 
 ```bash
-# Em um emulador ou dispositivo conectado
-flutter run
+# Terminal 1 - back-end
+cd backend-repo/Procel-Ingestion
+docker compose up -d
+.\mvnw.cmd spring-boot:run
+
+# Terminal 2 - front-end
+cd ..\..\
+flutter run --dart-define=API_BASE_URL=http://localhost:8080
 
 # Com logs detalhados
 flutter run -v
@@ -86,7 +90,8 @@ flutter build web
 ## Estrutura do Projeto
 
 - `lib/auth/` - Autenticação Firebase
-- `lib/backend/` - Modelos Firestore e configuração
+- `lib/backend/` - Camada de APIs, schemas e integração com serviços
+- `lib/config/` - Configuração da URL base do back-end e endpoints
 - `lib/pages/` - Telas do aplicativo
 - `lib/components/` - Componentes reutilizáveis
 - `lib/providers/` - State management
@@ -99,8 +104,30 @@ flutter build web
 
 - Flutter e Dart
 - Firebase (Authentication, Firestore, Cloud Functions)
+- Java 21 + Spring Boot + PostgreSQL no back-end de ingestão
 - Provider para state management
 - Shared Preferences para armazenamento local
+
+## Fluxo Fechado
+
+O caminho principal do app agora fica assim:
+
+1. O Flutter sobe com `API_BASE_URL` apontando para o back-end Java.
+2. O back-end expõe a API em `/api/...` e persiste no PostgreSQL.
+3. O front consome os endpoints via `lib/config/api_config.dart`.
+4. O submodule `backend-repo/` mantém o código do back-end versionado junto do app.
+
+Base local padrão:
+
+```text
+http://localhost:8080
+```
+
+Base remota de testes:
+
+```text
+https://procel.servehttp.com
+```
 
 ## Próximos Passos
 

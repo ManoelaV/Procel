@@ -1,24 +1,39 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-void main() => runApp(const EcoApp());
+import 'config/api_config.dart';
+import 'pages/backend_auth_screen.dart';
+import 'services/backend_session.dart';
+import 'services/gamification_state.dart';
+import 'services/backend_health_service.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await BackendSession.restoreToken();
+  runApp(const EcoApp());
+}
 
 class EcoApp extends StatelessWidget {
   const EcoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'PROCEL',
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF7FBFA),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1F7A75),
-          brightness: Brightness.light,
+    return ChangeNotifierProvider(
+      create: (_) => GamificationState(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'PROCEL',
+        theme: ThemeData(
+          useMaterial3: true,
+          scaffoldBackgroundColor: const Color(0xFFF7FBFA),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF1F7A75),
+            brightness: Brightness.light,
+          ),
         ),
+        home: const BackendAuthScreen(),
+        routes: {'/shell': (context) => const ShellPage()},
       ),
-      home: const ShellPage(),
     );
   }
 }
@@ -50,10 +65,22 @@ class _ShellPageState extends State<ShellPage> {
         onDestinationSelected: (value) => setState(() => index = value),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_rounded), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.assignment_rounded), label: 'Missões'),
-          NavigationDestination(icon: Icon(Icons.leaderboard_rounded), label: 'Ranking'),
-          NavigationDestination(icon: Icon(Icons.military_tech_rounded), label: 'Badges'),
-          NavigationDestination(icon: Icon(Icons.person_rounded), label: 'Perfil'),
+          NavigationDestination(
+            icon: Icon(Icons.assignment_rounded),
+            label: 'Missões',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.leaderboard_rounded),
+            label: 'Ranking',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.military_tech_rounded),
+            label: 'Badges',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_rounded),
+            label: 'Perfil',
+          ),
         ],
       ),
     );
@@ -65,11 +92,12 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _PageScaffold(
-      title: '👋 Olá, João!',
-      subtitle: 'Level 4: Campeão Sustentável',
-      progress: 0.84,
-      progressLabel: '4.200 / 5.000 XP',
+    final gamification = context.watch<GamificationState>();
+    return _PageScaffold(
+      title: '👋 Olá, ${gamification.firstName}!',
+      subtitle: gamification.levelLabel,
+      progress: gamification.levelProgress,
+      progressLabel: gamification.xpLabel,
       child: _HomeBody(),
     );
   }
@@ -80,11 +108,15 @@ class MissionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _PageScaffold(
+    final gamification = context.watch<GamificationState>();
+    return _PageScaffold(
       title: '🎮 Missões',
-      subtitle: '3/5 diárias concluídas',
-      progress: 0.6,
-      progressLabel: '3/5 diárias concluídas',
+      subtitle:
+          '${gamification.completedMissionCount}/${gamification.totalMissionCount} diárias concluídas',
+      progress:
+          gamification.completedMissionCount / gamification.totalMissionCount,
+      progressLabel:
+          '${gamification.completedMissionCount}/${gamification.totalMissionCount} diárias concluídas',
       child: _MissionsBody(),
     );
   }
@@ -95,10 +127,11 @@ class RankingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _PageScaffold(
+    final gamification = context.watch<GamificationState>();
+    return _PageScaffold(
       title: '🏆 Ranking',
       subtitle: 'Competição saudável e motivadora',
-      progress: 0.75,
+      progress: gamification.levelProgress,
       progressLabel: 'Você está em 3º lugar',
       child: _RankingBody(),
     );
@@ -110,11 +143,13 @@ class BadgesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _PageScaffold(
+    final gamification = context.watch<GamificationState>();
+    return _PageScaffold(
       title: '🎖️ Conquistas',
-      subtitle: '12 / 30 badges desbloqueados',
-      progress: 0.4,
-      progressLabel: '40% completado',
+      subtitle: gamification.badgeProgressLabel,
+      progress: gamification.unlockedBadgesCount / 4,
+      progressLabel:
+          '${(gamification.unlockedBadgesCount / 4 * 100).round()}% completado',
       child: _BadgesBody(),
     );
   }
@@ -125,11 +160,12 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _PageScaffold(
+    final gamification = context.watch<GamificationState>();
+    return _PageScaffold(
       title: '👤 Perfil',
-      subtitle: 'João Pedro Santos',
-      progress: 0.72,
-      progressLabel: 'Streak 23 dias',
+      subtitle: gamification.displayName,
+      progress: gamification.levelProgress,
+      progressLabel: 'Streak ${gamification.streakDays} dias',
       child: _ProfileBody(),
     );
   }
@@ -169,15 +205,29 @@ class _PageScaffold extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: const [
-                  BoxShadow(color: Color(0x221F7A75), blurRadius: 20, offset: Offset(0, 10)),
+                  BoxShadow(
+                    color: Color(0x221F7A75),
+                    blurRadius: 20,
+                    offset: Offset(0, 10),
+                  ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
                   const SizedBox(height: 16),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(999),
@@ -185,11 +235,19 @@ class _PageScaffold extends StatelessWidget {
                       value: progress,
                       minHeight: 18,
                       backgroundColor: Colors.white24,
-                      valueColor: const AlwaysStoppedAnimation(Color(0xFFFFC857)),
+                      valueColor: const AlwaysStoppedAnimation(
+                        Color(0xFFFFC857),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(progressLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                  Text(
+                    progressLabel,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -207,19 +265,142 @@ class _HomeBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gamification = context.watch<GamificationState>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        _SectionTitle('📊 Seu impacto'),
-        SizedBox(height: 12),
-        _StatsGrid(),
-        SizedBox(height: 24),
-        _SectionTitle('🎯 Próximas missões'),
-        SizedBox(height: 12),
-        _MissionCard(title: 'Luz Eficiente', icon: '💡', description: 'Desligue 3 luzes desnecessárias', progress: 0.66, xp: '25 XP', coins: '+10 moedas', buttonLabel: 'Completar'),
-        _MissionCard(title: 'Temperatura Inteligente', icon: '❄️', description: 'Ajuste o AC para 24°C', progress: 0.0, xp: '25 XP', buttonLabel: 'Começar'),
-        _MissionCard(title: 'Sensor Scout', icon: '🔍', description: 'Verifique 2 salas e reporte anomalias', progress: 0.5, xp: '20 XP', coins: '+5 moedas', buttonLabel: 'Continuar'),
+      children: [
+        FutureBuilder<BackendHealthResult>(
+          future: BackendHealthService.check(),
+          builder: (context, snapshot) {
+            final result = snapshot.data;
+            final isLoading =
+                snapshot.connectionState == ConnectionState.waiting;
+            final isHealthy = result?.ok == true;
+            final statusText = isLoading
+                ? 'Verificando back-end...'
+                : isHealthy
+                ? 'Back-end online'
+                : 'Back-end offline';
+            final detailText = isLoading
+                ? ApiConfig.healthUri.toString()
+                : result?.status ?? 'Sem resposta';
+
+            return _BackendHealthCard(
+              title: statusText,
+              detail: detailText,
+              accent: isHealthy
+                  ? const Color(0xFF27AE60)
+                  : const Color(0xFFC0392B),
+              icon: isLoading
+                  ? Icons.sync_rounded
+                  : isHealthy
+                  ? Icons.check_circle_rounded
+                  : Icons.cloud_off_rounded,
+            );
+          },
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('📊 Seu impacto'),
+        const SizedBox(height: 12),
+        _StatsGrid(
+          daily: '${gamification.dailySavedKwh.toStringAsFixed(1)} kWh',
+          total: '${gamification.totalSavedKwh.toStringAsFixed(0)} kWh',
+          third: '${gamification.co2AvoidedKg.toStringAsFixed(1)} kg',
+          streak: '${gamification.streakDays} 🔥',
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('🎯 Próximas missões'),
+        const SizedBox(height: 12),
+        ...gamification.missions
+            .take(3)
+            .map(
+              (mission) => _MissionCard(
+                title: mission.title,
+                icon: mission.icon,
+                description: mission.description,
+                progress: mission.progress,
+                xp: mission.xpLabel,
+                coins: mission.coinsLabel,
+                buttonLabel: mission.buttonLabel,
+                completed: mission.completed,
+                onPressed: mission.completed
+                    ? null
+                    : () => context.read<GamificationState>().completeMission(
+                        gamification.missions.indexOf(mission),
+                      ),
+              ),
+            ),
       ],
+    );
+  }
+}
+
+class _BackendHealthCard extends StatelessWidget {
+  const _BackendHealthCard({
+    required this.title,
+    required this.detail,
+    required this.accent,
+    required this.icon,
+  });
+
+  final String title;
+  final String detail;
+  final Color accent;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: accent.withValues(alpha: 0.22)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0B000000),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: accent),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  detail,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF6B7C7B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -229,18 +410,40 @@ class _MissionsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gamification = context.watch<GamificationState>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         _SectionTitle('📅 Missões diárias'),
         SizedBox(height: 12),
-        _MissionCard(title: 'Luz Eficiente', icon: '💡', description: 'Desligar pelo menos 3 luzes', progress: 1, xp: '25 XP', coins: '+10 moedas', buttonLabel: 'Concluída', completed: true),
-        _MissionCard(title: 'Hora do Repouso', icon: '🔌', description: 'Desligar equipamentos em standby', progress: 1, xp: '25 XP', coins: '+10 moedas', buttonLabel: 'Concluída', completed: true),
-        _MissionCard(title: 'Educar é Compartilhar', icon: '💬', description: 'Compartilhar 1 dica de economia', progress: 1, xp: '15 XP', buttonLabel: 'Concluída', completed: true),
+        ...gamification.missions.map(
+          (mission) => _MissionCard(
+            title: mission.title,
+            icon: mission.icon,
+            description: mission.description,
+            progress: mission.progress,
+            xp: mission.xpLabel,
+            coins: mission.coinsLabel,
+            buttonLabel: mission.buttonLabel,
+            completed: mission.completed,
+            onPressed: mission.completed
+                ? null
+                : () => context.read<GamificationState>().completeMission(
+                    gamification.missions.indexOf(mission),
+                  ),
+          ),
+        ),
         SizedBox(height: 24),
         _SectionTitle('🎖️ Desafio da semana'),
         SizedBox(height: 12),
-        _ChallengeCard(title: 'Semana de Energia Mínima', description: 'Reduza o consumo da sala em 25%', progress: 0.7, progressText: '35 / 50 kWh (70%)', timeLeft: '5 dias restantes', rewards: ['200 XP', '📊 Badge', '+25 moedas']),
+        _ChallengeCard(
+          title: 'Semana de Energia Mínima',
+          description: 'Reduza o consumo da sala em 25%',
+          progress: 0.7,
+          progressText: '35 / 50 kWh (70%)',
+          timeLeft: '5 dias restantes',
+          rewards: ['200 XP', '📊 Badge', '+25 moedas'],
+        ),
       ],
     );
   }
@@ -251,23 +454,64 @@ class _RankingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gamification = context.watch<GamificationState>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         _SectionTitle('🌍 Ranking global'),
         SizedBox(height: 12),
-        _LeaderboardCard(items: [
-          _LeaderboardItem(rank: '🥇', name: 'Maria Silva', level: 'Level 6: Herói Ambiental', xp: '8.500 XP', streak: '45 🔥', highlight: false),
-          _LeaderboardItem(rank: '🥈', name: 'João Santos', level: 'Level 5: Mestre da Economia', xp: '6.200 XP', streak: '32 🔥', highlight: false),
-          _LeaderboardItem(rank: '🥉', name: 'Você (João Pedro)', level: 'Level 4: Campeão Sustentável', xp: '4.200 XP', streak: '23 🔥', highlight: true),
-        ]),
+        _LeaderboardCard(
+          items: [
+            const _LeaderboardItem(
+              rank: '🥇',
+              name: 'Maria Silva',
+              level: 'Level 6: Herói Ambiental',
+              xp: '8.500 XP',
+              streak: '45 🔥',
+              highlight: false,
+            ),
+            const _LeaderboardItem(
+              rank: '🥈',
+              name: 'João Santos',
+              level: 'Level 5: Mestre da Economia',
+              xp: '6.200 XP',
+              streak: '32 🔥',
+              highlight: false,
+            ),
+            _LeaderboardItem(
+              rank: '🥉',
+              name: 'Você (${gamification.firstName})',
+              level: gamification.levelLabel,
+              xp: '${gamification.xpLabel}',
+              streak: '${gamification.streakDays} 🔥',
+              highlight: true,
+            ),
+          ],
+        ),
         SizedBox(height: 24),
         _SectionTitle('🏫 Ranking de salas'),
         SizedBox(height: 12),
-        _LeaderboardCard(items: [
-          _LeaderboardItem(rank: '🥇', name: 'Sala 304', level: '8/10 alunos participando', xp: '-35%', streak: 'Economia', highlight: false),
-          _LeaderboardItem(rank: '🥈', name: 'Sala 101 (Sua Sala)', level: '9/10 alunos participando', xp: '-28%', streak: 'Economia', highlight: true),
-        ]),
+        _LeaderboardCard(
+          items: [
+            const _LeaderboardItem(
+              rank: '🥇',
+              name: 'Sala 304',
+              level: '8/10 alunos participando',
+              xp: '-35%',
+              streak: 'Economia',
+              highlight: false,
+            ),
+            _LeaderboardItem(
+              rank: '🥈',
+              name: 'Sala 101 (${gamification.schoolRoom})',
+              level:
+                  '${gamification.completedMissionCount + 6}/10 alunos participando',
+              xp: '-${28 - gamification.completedMissionCount}%',
+              streak: 'Economia',
+              highlight: true,
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -278,17 +522,24 @@ class _BadgesBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gamification = context.watch<GamificationState>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         _SectionTitle('🌱 Sustentabilidade'),
         SizedBox(height: 12),
-        _BadgeGrid(items: [
-          _BadgeItem(icon: '🌱', name: 'Novato Eco', unlocked: true, progress: 'Desbloqueado'),
-          _BadgeItem(icon: '♻️', name: 'Guardião Verde', unlocked: true, progress: 'Desbloqueado'),
-          _BadgeItem(icon: '🌍', name: 'Herói Ambiental', unlocked: true, progress: 'Desbloqueado'),
-          _BadgeItem(icon: '👑', name: 'Lenda Sustentável', unlocked: false, progress: 'Próximo: 10.000 XP'),
-        ]),
+        _BadgeGrid(
+          items: gamification.badgeViewModels
+              .map(
+                (badge) => _BadgeItem(
+                  icon: badge.icon,
+                  name: badge.name,
+                  unlocked: badge.unlocked,
+                  progress: badge.progress,
+                ),
+              )
+              .toList(),
+        ),
       ],
     );
   }
@@ -299,14 +550,24 @@ class _ProfileBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gamification = context.watch<GamificationState>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        _ProfileHeader(name: 'João Pedro Santos', title: 'Level 4: Campeão Sustentável', avatar: '🌟'),
+      children: [
+        _ProfileHeader(
+          name: gamification.displayName,
+          title: gamification.levelLabel,
+          avatar: '🌟',
+        ),
         SizedBox(height: 18),
         _SectionTitle('📊 Estatísticas'),
         SizedBox(height: 12),
-        _StatsGrid(daily: '125 kWh', total: '62.5 kg', third: '240 moedas', streak: '23 🔥'),
+        _StatsGrid(
+          daily: '${gamification.dailySavedKwh.toStringAsFixed(1)} kWh',
+          total: '${gamification.co2AvoidedKg.toStringAsFixed(1)} kg',
+          third: '${gamification.coins} moedas',
+          streak: '${gamification.streakDays} 🔥',
+        ),
         SizedBox(height: 18),
         _SectionTitle('🎖️ Badges recentes'),
         SizedBox(height: 12),
@@ -322,11 +583,19 @@ class _SectionTitle extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => Text(text, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800));
+  Widget build(BuildContext context) => Text(
+    text,
+    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+  );
 }
 
 class _StatsGrid extends StatelessWidget {
-  const _StatsGrid({this.daily = '2.5 kWh', this.total = '125 kWh', this.third = '62.5 kg', this.streak = '23 🔥'});
+  const _StatsGrid({
+    this.daily = '2.5 kWh',
+    this.total = '125 kWh',
+    this.third = '62.5 kg',
+    this.streak = '23 🔥',
+  });
 
   final String daily;
   final String total;
@@ -345,17 +614,33 @@ class _StatsGrid extends StatelessWidget {
         childAspectRatio: 1.45,
       ),
       children: [
-        _StatCard(value: daily, label: 'Economizado hoje', color: Color(0xFF27AE60)),
-        _StatCard(value: total, label: 'Total do semestre', color: Color(0xFFE67E22)),
+        _StatCard(
+          value: daily,
+          label: 'Economizado hoje',
+          color: Color(0xFF27AE60),
+        ),
+        _StatCard(
+          value: total,
+          label: 'Total do semestre',
+          color: Color(0xFFE67E22),
+        ),
         _StatCard(value: third, label: 'CO₂ evitado', color: Color(0xFF32B8C6)),
-        _StatCard(value: streak, label: 'Dias de streak', color: Color(0xFFF39C12)),
+        _StatCard(
+          value: streak,
+          label: 'Dias de streak',
+          color: Color(0xFFF39C12),
+        ),
       ],
     );
   }
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.value, required this.label, required this.color});
+  const _StatCard({
+    required this.value,
+    required this.label,
+    required this.color,
+  });
 
   final String value;
   final String label;
@@ -369,15 +654,35 @@ class _StatCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border(left: BorderSide(color: color, width: 4)),
-        boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 8, offset: Offset(0, 2))],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0D000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(value, style: TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text(label, style: const TextStyle(color: Color(0xFF7F8C8D), fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF7F8C8D),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -385,7 +690,17 @@ class _StatCard extends StatelessWidget {
 }
 
 class _MissionCard extends StatelessWidget {
-  const _MissionCard({required this.title, required this.icon, required this.description, required this.progress, required this.xp, required this.buttonLabel, this.coins, this.completed = false});
+  const _MissionCard({
+    required this.title,
+    required this.icon,
+    required this.description,
+    required this.progress,
+    required this.xp,
+    required this.buttonLabel,
+    required this.onPressed,
+    this.coins,
+    this.completed = false,
+  });
 
   final String title;
   final String icon;
@@ -395,6 +710,7 @@ class _MissionCard extends StatelessWidget {
   final String? coins;
   final String buttonLabel;
   final bool completed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -404,7 +720,9 @@ class _MissionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: completed ? const Color(0xFF27AE60) : const Color(0xFFECF0F1)),
+        border: Border.all(
+          color: completed ? const Color(0xFF27AE60) : const Color(0xFFECF0F1),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -416,9 +734,21 @@ class _MissionCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    Text(description, style: const TextStyle(color: Color(0xFF7F8C8D), fontSize: 13)),
+                    Text(
+                      description,
+                      style: const TextStyle(
+                        color: Color(0xFF7F8C8D),
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -440,24 +770,45 @@ class _MissionCard extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              _Pill(text: xp, background: const Color(0xFFE8F5E9), foreground: const Color(0xFF27AE60)),
+              _Pill(
+                text: xp,
+                background: const Color(0xFFE8F5E9),
+                foreground: const Color(0xFF27AE60),
+              ),
               if (coins != null)
-                _Pill(text: coins!, background: const Color(0xFFFFF8E1), foreground: const Color(0xFFE67E22)),
+                _Pill(
+                  text: coins!,
+                  background: const Color(0xFFFFF8E1),
+                  foreground: const Color(0xFFE67E22),
+                ),
             ],
           ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: onPressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor: completed ? Colors.white : const Color(0xFF1F7A75),
-                foregroundColor: completed ? const Color(0xFF27AE60) : Colors.white,
-                side: BorderSide(color: completed ? const Color(0xFF27AE60) : Colors.transparent),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor: completed
+                    ? Colors.white
+                    : const Color(0xFF1F7A75),
+                foregroundColor: completed
+                    ? const Color(0xFF27AE60)
+                    : Colors.white,
+                side: BorderSide(
+                  color: completed
+                      ? const Color(0xFF27AE60)
+                      : Colors.transparent,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              child: Text(completed ? 'Concluída' : buttonLabel, style: const TextStyle(fontWeight: FontWeight.w800)),
+              child: Text(
+                completed ? 'Concluída' : buttonLabel,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
             ),
           ),
         ],
@@ -467,7 +818,14 @@ class _MissionCard extends StatelessWidget {
 }
 
 class _ChallengeCard extends StatelessWidget {
-  const _ChallengeCard({required this.title, required this.description, required this.progress, required this.progressText, required this.timeLeft, required this.rewards});
+  const _ChallengeCard({
+    required this.title,
+    required this.description,
+    required this.progress,
+    required this.progressText,
+    required this.timeLeft,
+    required this.rewards,
+  });
 
   final String title;
   final String description;
@@ -488,9 +846,15 @@ class _ChallengeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 8),
-          Text(description, style: const TextStyle(fontSize: 13, color: Color(0xFF7F8C8D))),
+          Text(
+            description,
+            style: const TextStyle(fontSize: 13, color: Color(0xFF7F8C8D)),
+          ),
           const SizedBox(height: 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
@@ -505,8 +869,21 @@ class _ChallengeCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(progressText, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-              Text('⏱️ $timeLeft', style: const TextStyle(fontSize: 12, color: Color(0xFFF39C12), fontWeight: FontWeight.w600)),
+              Text(
+                progressText,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                '⏱️ $timeLeft',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFFF39C12),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -514,7 +891,13 @@ class _ChallengeCard extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: rewards
-                .map((reward) => _Pill(text: reward, background: const Color(0xFFF8F9FA), foreground: const Color(0xFF1F7A75)))
+                .map(
+                  (reward) => _Pill(
+                    text: reward,
+                    background: const Color(0xFFF8F9FA),
+                    foreground: const Color(0xFF1F7A75),
+                  ),
+                )
                 .toList(),
           ),
         ],
@@ -534,7 +917,13 @@ class _LeaderboardCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 10, offset: Offset(0, 4))],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0D000000),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(children: items),
     );
@@ -542,7 +931,14 @@ class _LeaderboardCard extends StatelessWidget {
 }
 
 class _LeaderboardItem extends StatelessWidget {
-  const _LeaderboardItem({required this.rank, required this.name, required this.level, required this.xp, required this.streak, required this.highlight});
+  const _LeaderboardItem({
+    required this.rank,
+    required this.name,
+    required this.level,
+    required this.xp,
+    required this.streak,
+    required this.highlight,
+  });
 
   final String rank;
   final String name;
@@ -561,24 +957,56 @@ class _LeaderboardItem extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          SizedBox(width: 40, child: Text(rank, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF1F7A75)))),
+          SizedBox(
+            width: 40,
+            child: Text(
+              rank,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1F7A75),
+              ),
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(level, style: const TextStyle(fontSize: 12, color: Color(0xFF7F8C8D))),
+                Text(
+                  level,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF7F8C8D),
+                  ),
+                ),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(xp, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1F7A75))),
+              Text(
+                xp,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1F7A75),
+                ),
+              ),
               const SizedBox(height: 4),
-              Text(streak, style: const TextStyle(fontSize: 12, color: Color(0xFF7F8C8D))),
+              Text(
+                streak,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF7F8C8D)),
+              ),
             ],
           ),
         ],
@@ -610,7 +1038,12 @@ class _BadgeGrid extends StatelessWidget {
 }
 
 class _BadgeItem {
-  const _BadgeItem({required this.icon, required this.name, required this.unlocked, required this.progress});
+  const _BadgeItem({
+    required this.icon,
+    required this.name,
+    required this.unlocked,
+    required this.progress,
+  });
 
   final String icon;
   final String name;
@@ -629,7 +1062,11 @@ class _BadgeCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: item.unlocked ? const Color(0xFF32B8C6) : const Color(0xFFECF0F1)),
+        border: Border.all(
+          color: item.unlocked
+              ? const Color(0xFF32B8C6)
+              : const Color(0xFFECF0F1),
+        ),
       ),
       padding: const EdgeInsets.all(14),
       child: Column(
@@ -637,9 +1074,17 @@ class _BadgeCard extends StatelessWidget {
         children: [
           Text(item.icon, style: const TextStyle(fontSize: 30)),
           const SizedBox(height: 8),
-          Text(item.name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+          Text(
+            item.name,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 6),
-          Text(item.progress, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10, color: Color(0xFF7F8C8D))),
+          Text(
+            item.progress,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 10, color: Color(0xFF7F8C8D)),
+          ),
         ],
       ),
     );
@@ -647,7 +1092,11 @@ class _BadgeCard extends StatelessWidget {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.name, required this.title, required this.avatar});
+  const _ProfileHeader({
+    required this.name,
+    required this.title,
+    required this.avatar,
+  });
 
   final String name;
   final String title;
@@ -657,17 +1106,33 @@ class _ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF1F7A75), Color(0xFF135C58)]),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1F7A75), Color(0xFF135C58)],
+        ),
         borderRadius: BorderRadius.circular(18),
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          CircleAvatar(radius: 36, backgroundColor: Colors.white24, child: Text(avatar, style: const TextStyle(fontSize: 34))),
+          CircleAvatar(
+            radius: 36,
+            backgroundColor: Colors.white24,
+            child: Text(avatar, style: const TextStyle(fontSize: 34)),
+          ),
           const SizedBox(height: 12),
-          Text(name, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(
+            name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text(title, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+          Text(
+            title,
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
+          ),
         ],
       ),
     );
@@ -681,11 +1146,17 @@ class _RecentBadgesRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: const [
-        Expanded(child: _MiniBadge(icon: '♻️', label: 'Guardião Verde')),
+        Expanded(
+          child: _MiniBadge(icon: '♻️', label: 'Guardião Verde'),
+        ),
         SizedBox(width: 12),
-        Expanded(child: _MiniBadge(icon: '🔥', label: '7 Days Strong')),
+        Expanded(
+          child: _MiniBadge(icon: '🔥', label: '7 Days Strong'),
+        ),
         SizedBox(width: 12),
-        Expanded(child: _MiniBadge(icon: '💡', label: 'Apagador Ninja')),
+        Expanded(
+          child: _MiniBadge(icon: '💡', label: 'Apagador Ninja'),
+        ),
       ],
     );
   }
@@ -710,7 +1181,11 @@ class _MiniBadge extends StatelessWidget {
         children: [
           Text(icon, style: const TextStyle(fontSize: 28)),
           const SizedBox(height: 8),
-          Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+          ),
         ],
       ),
     );
@@ -718,7 +1193,11 @@ class _MiniBadge extends StatelessWidget {
 }
 
 class _Pill extends StatelessWidget {
-  const _Pill({required this.text, required this.background, required this.foreground});
+  const _Pill({
+    required this.text,
+    required this.background,
+    required this.foreground,
+  });
 
   final String text;
   final Color background;
@@ -732,7 +1211,14 @@ class _Pill extends StatelessWidget {
         color: background,
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Text(text, style: TextStyle(color: foreground, fontWeight: FontWeight.w700, fontSize: 12)),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: foreground,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+      ),
     );
   }
 }

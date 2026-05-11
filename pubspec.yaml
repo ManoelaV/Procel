@@ -29,6 +29,8 @@ dependencies:
   shared_preferences: ^2.2.2
   # Postgres client for direct DB connections (dev)
   postgres: ^2.5.4
+  equatable: ^2.0.7
+  mime_type: ^1.0.1
 
 dev_dependencies:
   flutter_test:
