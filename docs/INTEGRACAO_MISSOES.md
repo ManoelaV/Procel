@@ -2,7 +2,55 @@
 
 Este guia explica como usar o novo sistema de missões integrado com o backend Java/Spring Boot.
 
-## Estrutura
+## ⚡ Quick Start
+
+### 1. Obter userId do usuário logado
+```dart
+final authData = await ref.watch(authDataProvider.future);
+final userId = authData?.userId; // ou pessoaId
+```
+
+### 2. Exibir próximas missões na home
+```dart
+ProximasMissoesWidget()
+```
+
+### 3. Exibir resumo de missões
+```dart
+ResumoMissoesWidget()
+```
+
+### 4. Exibir página completa de missões com todas as funcionalidades
+```dart
+MissoesImprovedPage(gamificationState: context.read<GamificationState>())
+```
+
+---
+
+## 📁 Arquivos Criados / Modificados
+
+### Providers (`lib/providers/`)
+- `auth_provider.dart` - obter userId/token do usuário logado
+- `missao_provider.dart` - providers Riverpod para missões
+
+### Services (`lib/services/`)
+- `missao_service.dart` - chamadas HTTP aos endpoints
+- `missoes_gamificacao_service.dart` - integração com gamificação
+
+### Pages (`lib/pages/`)
+- `missoes/missoes_improved_page.dart` - página completa com tabs
+
+### Components (`lib/components/`)
+- `missoes_lista_widget.dart` - lista básica de missões
+- `proximas_missoes_widget.dart` - widget compacto para home
+- `resumo_missoes_widget.dart` - resumo visual/contadores
+
+### Models (`lib/models/`)
+- `missao_model.dart` - modelos Dart + DTOs
+
+---
+
+## 📋 Estrutura
 
 ### Modelos (`lib/models/missao_model.dart`)
 
@@ -47,9 +95,46 @@ Estado de uma atividade com métodos auxiliares:
 - `CONCLUIDA` → `isCompleted`
 - `CANCELADA` → `isCanceled`
 
-### Service (`lib/services/missao_service.dart`)
+---
 
-Responsável por todas as chamadas HTTP aos endpoints de missões.
+## 🔌 Providers (Riverpod)
+
+### Autenticação
+```dart
+// Obter userId do usuário logado
+final userId = await ref.watch(userIdProvider.future);
+
+// Obter token de acesso
+final token = await ref.watch(accessTokenProvider.future);
+
+// Obter dados completos de auth
+final authData = await ref.watch(authDataProvider.future);
+// authData.userId, authData.accessToken, authData.displayName, authData.email
+```
+
+### Missões
+```dart
+// Lista de missões ativas do catálogo
+ref.watch(missoesCatalogoProvider);
+
+// Todas as atividades de uma pessoa
+ref.watch(atividadesDaPessoaProvider(pessoaId));
+
+// Atividades por status
+ref.watch(atividadesPendentesProvider(pessoaId));
+ref.watch(atividadesEmAndamentoProvider(pessoaId));
+ref.watch(atividadesConcluidasProvider(pessoaId));
+
+// StateNotifier para gerenciar ações
+final notifier = ref.read(missaoNotifierProvider.notifier);
+```
+
+---
+
+## 🎮 Serviços (Services)
+
+### MissaoService
+Responsável por chamadas HTTP diretas aos endpoints.
 
 ```dart
 final service = MissaoService();
@@ -66,7 +151,7 @@ final pendentes = await service.listarAtividadesDaPessoa(
   status: AtividadeStatus.pendente,
 );
 
-// Atribuir missão
+// Atribuir missão a pessoa
 final atividade = await service.atribuirMissaoAPessoa(
   pessoaId,
   AtribuirMissaoRequest(missaoId: 'uuid-da-missao'),
@@ -85,52 +170,66 @@ await service.cancelarAtividade(pessoaId, atividadeId);
 await service.removerAtividade(pessoaId, atividadeId);
 ```
 
-### Providers (`lib/providers/missao_provider.dart`)
+### MissoesGamificacaoService
+Integração entre missões e gamificação, com sincronização de pontos.
 
-Usa Riverpod para gerenciar o estado reativo das missões.
-
-#### Providers de Leitura (FutureProvider)
 ```dart
-// Lista de missões ativas (catálogo)
-ref.watch(missoesCatalogoProvider);
-
-// Todas as atividades da pessoa
-ref.watch(atividadesDaPessoaProvider(pessoaId));
-
-// Atividades por status específico
-ref.watch(atividadesPendentesProvider(pessoaId));
-ref.watch(atividadesEmAndamentoProvider(pessoaId));
-ref.watch(atividadesConcluidasProvider(pessoaId));
-```
-
-#### StateNotifier (MissaoNotifier)
-```dart
-final notifier = ref.read(missaoNotifierProvider.notifier);
-
-// Iniciar uma missão
-await notifier.iniciarMissao(pessoaId, atividadeId);
-
-// Concluir missão (com pontuação)
-await notifier.concluirMissao(
-  pessoaId,
-  atividadeId,
-  rewardXp: 10,      // Pontos XP ganhos
-  rewardCoins: 5,    // Moedas ganhas
+final service = MissoesGamificacaoService(
+  missaoService: MissaoService(),
+  gamificationState: context.read<GamificationState>(),
 );
 
-// Cancelar atividade
-await notifier.cancelarAtividade(pessoaId, atividadeId);
+// Iniciar e sincronizar gamificação
+await service.iniciarMissao(pessoaId, atividadeId);
 
-// Remover atividade
-await notifier.removerAtividade(pessoaId, atividadeId);
+// Concluir com recompensa
+await service.concluirMissao(
+  pessoaId,
+  atividadeId,
+  rewardXp: 25,
+  rewardCoins: 10,
+);
 
-// Atribuir missão
-await notifier.atribuirMissao(pessoaId, missaoId);
+// Obter resumo de atividades
+final resumo = await service.obterResumoAtividades(pessoaId);
+// resumo: {total, pendentes, em_andamento, concluidas, canceladas}
 ```
 
-### Component UI (`lib/components/missoes_lista_widget.dart`)
+---
 
-Widget pronto para usar que exibe a lista de missões com botões de ação.
+## 📱 Componentes UI
+
+### ProximasMissoesWidget
+Exibe as próximas 3 missões em andamento (ideal para home page).
+
+```dart
+ProximasMissoesWidget(
+  maxMissoes: 3, // quantidade máxima
+)
+```
+
+### ResumoMissoesWidget
+Exibe contadores visuais de missões por status.
+
+```dart
+ResumoMissoesWidget()
+```
+
+### MissoesImprovedPage
+Página completa com 4 tabs:
+- **Pendentes** - missões ainda não iniciadas
+- **Em Andamento** - missões em execução
+- **Concluídas** - missões finalizadas
+- **Disponíveis** - catálogo de novas missões para atribuir
+
+```dart
+MissoesImprovedPage(
+  gamificationState: context.read<GamificationState>(),
+)
+```
+
+### MissoesListaWidget (básico)
+Component simples apenas listando missões.
 
 ```dart
 MissoesListaWidget(
@@ -139,84 +238,77 @@ MissoesListaWidget(
 )
 ```
 
-## Fluxo de Uso
+---
 
-### 1. Exibir Catálogo de Missões Disponíveis
+## 🎯 Fluxos de Uso
 
-```dart
-final catalogoAsync = ref.watch(missoesCatalogoProvider);
-
-catalogoAsync.when(
-  data: (missoes) {
-    // Exibir lista de missões disponíveis
-    // Cada uma pode ser atribuída ao usuário via "Atribuir" button
-  },
-  loading: () => CircularProgressIndicator(),
-  error: (e, _) => Text('Erro: $e'),
-);
-```
-
-### 2. Listar Atividades do Usuário
+### Fluxo 1: Exibir Missões na Home
 
 ```dart
-final atividadesAsync = ref.watch(
-  atividadesDaPessoaProvider(pessoaId),
-);
-
-atividadesAsync.when(
-  data: (atividades) {
-    // atividades é uma List<PessoaMissao>
-    // Exibir com status, botões de ação, etc
-  },
-);
-```
-
-### 3. Iniciar uma Missão
-
-```dart
-final notifier = ref.read(missaoNotifierProvider.notifier);
-
-try {
-  final atividadeAtualizada = await notifier.iniciarMissao(
-    pessoaId,
-    atividadeId,
-  );
-  
-  // Recarregar lista
-  ref.invalidate(atividadesDaPessoaProvider(pessoaId));
-  
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Missão iniciada!'))
-  );
-} catch (e) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Erro: $e'))
+// Na home page
+@override
+Widget build(BuildContext context, WidgetRef ref) {
+  return Scaffold(
+    appBar: AppBar(title: Text('Home')),
+    body: SingleChildScrollView(
+      child: Column(
+        children: [
+          // Outros widgets da home...
+          ResumoMissoesWidget(),
+          ProximasMissoesWidget(maxMissoes: 3),
+        ],
+      ),
+    ),
   );
 }
 ```
 
-### 4. Concluir uma Missão (Subir Pontos)
-
-Quando o usuário conclui uma missão:
+### Fluxo 2: Iniciar Missão
 
 ```dart
 final notifier = ref.read(missaoNotifierProvider.notifier);
 
 try {
-  final atividadeAtualizada = await notifier.concluirMissao(
+  final resultado = await notifier.iniciarMissao(
     pessoaId,
     atividadeId,
-    rewardXp: 25,    // Define quantos XP ganha
-    rewardCoins: 10, // Define quantas moedas ganha
   );
   
-  // Recarregar dados de gamificação e atividades
-  ref.invalidate(atividadesDaPessoaProvider(pessoaId));
-  gamificationState?.loadFromBackend(); // Opcional
+  // Recarregar dados
+  ref.invalidate(atividadesEmAndamentoProvider(pessoaId));
   
+  // Mostrar feedback
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Missão iniciada!'))
+  );
+} catch (e) {
+  // Tratar erro
+}
+```
+
+### Fluxo 3: Concluir Missão e Ganhar Pontos
+
+```dart
+final notifier = ref.read(missaoNotifierProvider.notifier);
+
+try {
+  await notifier.concluirMissao(
+    pessoaId,
+    atividadeId,
+    rewardXp: 25,    // Pontos XP ganhos
+    rewardCoins: 10, // Moedas ganhas
+  );
+  
+  // Recarregar
+  ref.invalidate(atividadesDaPessoaProvider(pessoaId));
+  
+  // Sincronizar gamificação
+  context.read<GamificationState>().loadFromBackend();
+  
+  // Feedback
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text('Parabéns! +25 XP +10 Moedas'),
+      content: Text('🎉 +25 XP +10 Moedas'),
       backgroundColor: Colors.green,
     ),
   );
@@ -225,77 +317,187 @@ try {
 }
 ```
 
-## Integração com Gamificação
-
-O sistema de pontos é gerenciado pelo endpoint `/api/gamification/me/missions/{missionKey}/complete` do backend.
-
-Ao chamar `concluirMissao()`, a pontuação é automaticamente atualizada. Para sincronizar a UI:
+### Fluxo 4: Atribuir Nova Missão
 
 ```dart
-// Após concluir uma missão
-await notifier.concluirMissao(pessoaId, atividadeId);
+// Ir para aba "Disponíveis" em MissoesImprovedPage
+// Ou atribuir programaticamente:
 
-// Recarregar estado de gamificação
-if (gamificationState != null) {
-  await gamificationState.loadFromBackend();
-}
+final notifier = ref.read(missaoNotifierProvider.notifier);
+await notifier.atribuirMissao(pessoaId, missaoId);
 
-// Notificar listeners
 ref.invalidate(atividadesDaPessoaProvider(pessoaId));
+ref.invalidate(missoesCatalogoProvider);
 ```
 
-## Endpoints do Backend
+---
+
+## 🔗 Endpoints do Backend
 
 ```
 GET  /api/missoes
      Lista todas as missões ativas
+     Query: ?ativo=true
 
 GET  /api/missoes/{missaoId}
      Detalhe de uma missão
 
 POST /api/pessoas/{pessoaId}/atividades
      Atribui uma missão a uma pessoa
+     Body: { "missaoId": "uuid" }
      
 GET  /api/pessoas/{pessoaId}/atividades
      Lista atividades da pessoa
-     (suporta query param: ?status=PENDENTE)
+     Query: ?status=PENDENTE|EM_ANDAMENTO|CONCLUIDA|CANCELADA
 
 GET  /api/pessoas/{pessoaId}/atividades/{atividadeId}
      Detalhe de uma atividade
 
 PUT  /api/pessoas/{pessoaId}/atividades/{atividadeId}
      Atualiza status e timestamps
+     Body: {
+       "status": "EM_ANDAMENTO",
+       "startedAt": "2026-05-12T10:30:00Z",
+       "completedAt": null
+     }
      
 DELETE /api/pessoas/{pessoaId}/atividades/{atividadeId}
        Remove uma atividade
 ```
 
-## Exemplo Completo em Widget
+---
+
+## 💡 Boas Práticas
+
+1. **Sempre invalidar providers após ação**
+   ```dart
+   ref.invalidate(atividadesDaPessoaProvider(pessoaId));
+   ```
+
+2. **Sincronizar gamificação após concluir**
+   ```dart
+   context.read<GamificationState>().loadFromBackend();
+   ```
+
+3. **Usar AuthData para obter userId**
+   ```dart
+   final authData = await ref.watch(authDataProvider.future);
+   if (authData != null) { ... }
+   ```
+
+4. **Mostrar feedback visual ao usuário**
+   - SnackBar com mensagem
+   - Animação de conclusão
+   - Atualizar contadores visualmente
+
+5. **Tratar erros adequadamente**
+   ```dart
+   try {
+     // ação
+   } catch (e) {
+     ScaffoldMessenger.of(context).showSnackBar(
+       SnackBar(content: Text('Erro: $e'))
+     );
+   }
+   ```
+
+---
+
+## 🔄 Sincronização com Gamificação
+
+Quando uma missão é concluída:
+
+1. `notifier.concluirMissao()` → endpoint do backend atualiza pontos
+2. `gamificationState.loadFromBackend()` → puxa dados atualizados
+3. UI é notificada e exibe novo XP/coins
+4. Badges são desbloqueadas automaticamente se threshold atingido
+
+---
+
+## 📚 Exemplo Completo em Widget
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '/components/missoes_lista_widget.dart';
+import '/components/proximas_missoes_widget.dart';
+import '/components/resumo_missoes_widget.dart';
+import '/pages/missoes/missoes_improved_page.dart';
+import '/services/gamification_state.dart';
 
-class MinhasPaginaDeMissoes extends ConsumerWidget {
+class MinhaHomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userId = 'usuario-id-aqui'; // Obter do auth
-    
     return Scaffold(
-      appBar: AppBar(title: Text('Minhas Missões')),
-      body: MissoesListaWidget(
-        pessoaId: userId,
+      appBar: AppBar(title: Text('Home')),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Resumo de missões
+            ResumoMissoesWidget(),
+            
+            // Próximas missões em destaque
+            ProximasMissoesWidget(maxMissoes: 3),
+            
+            // Botão para abrir página completa
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MissoesImprovedPage(
+                        gamificationState: context.read<GamificationState>(),
+                      ),
+                    ),
+                  );
+                },
+                icon: Icon(Icons.list),
+                label: Text('Ver Todas as Missões'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 ```
 
-## Próximos Passos
+---
 
-1. **Integrar com autenticação** - obter `pessoaId` do usuário logado
-2. **Criar tela de catálogo** - mostrar missões disponíveis para atribuir
-3. **Adicionar recompensas** - mostrar XP/moedas ganhas ao concluir
-4. **Histórico** - listar missões concluídas com datas
-5. **Filters e sorting** - ordenar por status, data, etc
+## ✅ Checklist de Integração
+
+- [ ] Adicionar `auth_provider.dart` ao projeto
+- [ ] Adicionar `missao_provider.dart` ao projeto
+- [ ] Adicionar `MissaoService` ao projeto
+- [ ] Adicionar `MissoesGamificacaoService` ao projeto
+- [ ] Adicionar `ProximasMissoesWidget` na home page
+- [ ] Adicionar `ResumoMissoesWidget` na home page
+- [ ] Criar rota para `MissoesImprovedPage`
+- [ ] Testar fluxo completo (atribuir → iniciar → concluir)
+- [ ] Verificar sincronização de pontos/XP
+- [ ] Validar que userId está sendo salvo ao fazer login
+
+---
+
+## 🐛 Troubleshooting
+
+### "userId é null"
+Certifique-se de que o login salvou o `backend_user_id` em SharedPreferences:
+```dart
+await prefs.setString('backend_user_id', result.userId);
+```
+
+### "Erro ao carregar atividades"
+Verifique se o token de acesso está válido:
+```dart
+final token = await ref.watch(accessTokenProvider.future);
+print('Token: $token'); // Deve não ser null
+```
+
+### "Pontos não estão atualizando"
+Após concluir, chame `loadFromBackend()`:
+```dart
+context.read<GamificationState>().loadFromBackend();
+```
