@@ -95,14 +95,17 @@ O back-end agora é um repositório independente em `backend-repo/`. Usamos um *
 
 - **Automático**: A cada hora, o Action `.github/workflows/sync-backend.yml` clona o repositório do backend (`ravilon/PROCEL-Back-End`) e substitui o conteúdo em `backend-repo/`.
 - **Manual**: Você pode também rodar localmente o script `scripts/pull-backend-updates.ps1` para puxar atualizações na hora:
+
   ```powershell
   powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\pull-backend-updates.ps1
   ```
+  
 - **Commits automáticos**: Se houver mudanças, o Action comita e faz push automaticamente na branch main do front.
 
 ### Se o backend for privado
 
 Adicione um secret `BACKEND_TOKEN` nas configurações do repositório front (Settings > Secrets and variables > Actions):
+
 - Gere um token de leitura no GitHub (Settings > Developer settings > Personal access tokens > Tokens (classic))
 - Adicione o token com o nome `BACKEND_TOKEN`
 
