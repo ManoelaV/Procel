@@ -87,6 +87,27 @@ flutter build ios --release
 flutter build web
 ```
 
+## Sincronização do Backend
+
+O back-end agora é um repositório independente em `backend-repo/`. Usamos um **GitHub Action** para manter o front-end sempre sincronizado com as atualizações do back-end.
+
+### Como funciona
+
+- **Automático**: A cada hora, o Action `.github/workflows/sync-backend.yml` clona o repositório do backend (`ravilon/PROCEL-Back-End`) e substitui o conteúdo em `backend-repo/`.
+- **Manual**: Você pode também rodar localmente o script `scripts/pull-backend-updates.ps1` para puxar atualizações na hora:
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\pull-backend-updates.ps1
+  ```
+- **Commits automáticos**: Se houver mudanças, o Action comita e faz push automaticamente na branch main do front.
+
+### Se o backend for privado
+
+Adicione um secret `BACKEND_TOKEN` nas configurações do repositório front (Settings > Secrets and variables > Actions):
+- Gere um token de leitura no GitHub (Settings > Developer settings > Personal access tokens > Tokens (classic))
+- Adicione o token com o nome `BACKEND_TOKEN`
+
+Assim, o Action conseguirá clonar repositórios privados.
+
 ## Estrutura do Projeto
 
 - `lib/auth/` - Autenticação Firebase
@@ -98,6 +119,7 @@ flutter build web
 - `lib/services/` - Serviços e APIs
 - `lib/models/` - Modelos de dados
 - `assets/` - Imagens, vídeos, áudios, fontes
+- `backend-repo/` - Back-end Java/Spring Boot (sincronizado automaticamente)
 - `firebase/` - Configurações e regras Firestore
 
 ## Tecnologias
