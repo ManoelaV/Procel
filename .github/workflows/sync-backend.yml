@@ -1,0 +1,51 @@
+name: Sync backend into front
+
+on:
+  schedule:
+    - cron: '0 * * * *' # every hour
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout front
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Clone backend repository
+        env:
+          BACKEND_URL: https://github.com/ravilon/PROCEL-Back-End.git
+        run: |
+          rm -rf backend-tmp || true
+          if [ -n "${{ secrets.BACKEND_TOKEN }}" ]; then
+            git clone --depth 1 https://x-access-token:${{ secrets.BACKEND_TOKEN }}@github.com/ravilon/PROCEL-Back-End.git backend-tmp
+          else
+            git clone --depth 1 $BACKEND_URL backend-tmp
+          fi
+
+      - name: Replace backend content
+        run: |
+          mkdir -p backend-repo
+          # remove existing contents but keep the directory
+          find backend-repo -mindepth 1 -maxdepth 1 -exec rm -rf {} + || true
+          # copy backend contents (including hidden) into backend-repo
+          shopt -s dotglob || true
+          cp -R backend-tmp/. backend-repo/ || true
+
+      - name: Commit and push if changed
+        run: |
+          git add backend-repo
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "ci: sync backend $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            git push
+          fi
