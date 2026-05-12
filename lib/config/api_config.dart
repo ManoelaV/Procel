@@ -27,6 +27,9 @@ class ApiConfig {
       ? API_BASE_URL.substring(0, API_BASE_URL.length - 1)
       : API_BASE_URL;
 
+  /// URL base pública para uso em services
+  static String get baseUrl => _normalizedBaseUrl;
+
   static Uri _uri(String path) =>
       Uri.parse('$_normalizedBaseUrl$API_PREFIX$path');
 

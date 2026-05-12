@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 /// Modelo para Missão (Catálogo)
 class Missao {
   final String id;
