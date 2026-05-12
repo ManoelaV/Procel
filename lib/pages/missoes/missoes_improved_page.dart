@@ -110,46 +110,53 @@ class _MissoesTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final atividadesAsync = _getAtividadesByStatus(ref, pessoaId, status);
 
-    return ref.watch(atividadesAsync).when(
-      data: (atividades) {
-        if (atividades.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(_getIconForStatus(status), size: 64, color: Colors.grey),
-                const SizedBox(height: 16),
-                Text(
-                  'Nenhuma missão ${status.label.toLowerCase()}',
-                  style: Theme.of(context).textTheme.headlineSmall,
+    return ref
+        .watch(atividadesAsync)
+        .when(
+          data: (atividades) {
+            if (atividades.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      _getIconForStatus(status),
+                      size: 64,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Nenhuma missão ${status.label.toLowerCase()}',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        }
+              );
+            }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: atividades.length,
-          itemBuilder: (context, index) {
-            final atividade = atividades[index];
-            return _MissaoCard(
-              atividade: atividade,
-              pessoaId: pessoaId,
-              gamificationState: gamificationState,
-              onAtualizar: () {
-                // Invalidar para recarregar
-                ref.invalidate(atividadesPendentesProvider(pessoaId));
-                ref.invalidate(atividadesEmAndamentoProvider(pessoaId));
-                ref.invalidate(atividadesConcluidasProvider(pessoaId));
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: atividades.length,
+              itemBuilder: (context, index) {
+                final atividade = atividades[index];
+                return _MissaoCard(
+                  atividade: atividade,
+                  pessoaId: pessoaId,
+                  gamificationState: gamificationState,
+                  onAtualizar: () {
+                    // Invalidar para recarregar
+                    ref.invalidate(atividadesPendentesProvider(pessoaId));
+                    ref.invalidate(atividadesEmAndamentoProvider(pessoaId));
+                    ref.invalidate(atividadesConcluidasProvider(pessoaId));
+                  },
+                );
               },
             );
           },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) =>
+              Center(child: Text('Erro ao carregar: $error')),
         );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Erro ao carregar: $error')),
-    );
   }
 
   FutureProvider<List<PessoaMissao>> _getAtividadesByStatus(
