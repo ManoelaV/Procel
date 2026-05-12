@@ -18,19 +18,17 @@ class ResumoMissoesWidget extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        final atividadesAsync =
-            ref.watch(atividadesDaPessoaProvider(authData.userId));
+        final atividadesAsync = ref.watch(
+          atividadesDaPessoaProvider(authData.userId),
+        );
 
         return atividadesAsync.when(
           data: (atividades) {
             final contadores = {
               'total': atividades.length,
-              'pendentes':
-                  atividades.where((a) => a.isPending).length,
-              'em_andamento':
-                  atividades.where((a) => a.isInProgress).length,
-              'concluidas':
-                  atividades.where((a) => a.isCompleted).length,
+              'pendentes': atividades.where((a) => a.isPending).length,
+              'em_andamento': atividades.where((a) => a.isInProgress).length,
+              'concluidas': atividades.where((a) => a.isCompleted).length,
             };
 
             return Padding(
@@ -39,10 +37,9 @@ class ResumoMissoesWidget extends ConsumerWidget {
                 children: [
                   Text(
                     'Resumo de Missões',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -124,9 +121,9 @@ class _ContadorCard extends StatelessWidget {
               Text(
                 '$valor',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: cor,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: cor,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -147,10 +144,7 @@ class _BarraProgresso extends StatelessWidget {
   final int total;
   final int concluidas;
 
-  const _BarraProgresso({
-    required this.total,
-    required this.concluidas,
-  });
+  const _BarraProgresso({required this.total, required this.concluidas});
 
   @override
   Widget build(BuildContext context) {
@@ -164,9 +158,9 @@ class _BarraProgresso extends StatelessWidget {
           children: [
             Text(
               'Progresso',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             Text(
               '${(percentual * 100).toStringAsFixed(0)}% ($concluidas/$total)',

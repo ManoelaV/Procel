@@ -39,8 +39,7 @@ class Missao {
   }
 
   @override
-  String toString() =>
-      'Missao(id: $id, titulo: $titulo, ativo: $ativo)';
+  String toString() => 'Missao(id: $id, titulo: $titulo, ativo: $ativo)';
 }
 
 /// Enum para Status de Atividade
@@ -177,11 +176,7 @@ class AtribuirMissaoRequest {
   final AtividadeStatus? status;
   final DateTime? startedAt;
 
-  AtribuirMissaoRequest({
-    required this.missaoId,
-    this.status,
-    this.startedAt,
-  });
+  AtribuirMissaoRequest({required this.missaoId, this.status, this.startedAt});
 
   Map<String, dynamic> toJson() {
     return {

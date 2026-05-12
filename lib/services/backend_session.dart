@@ -38,6 +38,7 @@ class BackendSession {
   BackendSession._();
 
   static const _tokenKey = 'procel_backend_access_token';
+  static const _userIdKey = 'backend_user_id';
 
   static Future<String?> restoreToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -52,9 +53,20 @@ class BackendSession {
     ApiManager.setAccessToken(token);
   }
 
+  static Future<void> saveUserId(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userIdKey, userId);
+  }
+
+  static Future<String?> restoreUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userIdKey);
+  }
+
   static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    await prefs.remove(_userIdKey);
     ApiManager.clearAccessToken();
   }
 
@@ -80,6 +92,9 @@ class BackendSession {
     final result = BackendLoginResult.fromJson(decoded);
     if (result.accessToken.isNotEmpty) {
       await saveToken(result.accessToken);
+    }
+    if (result.userId.isNotEmpty) {
+      await saveUserId(result.userId);
     }
     return result;
   }

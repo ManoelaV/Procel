@@ -24,7 +24,9 @@ class MissaoService {
       if (response.statusCode == 200) {
         final data = response.data;
         final missoes = (data is List)
-            ? data.map((m) => Missao.fromJson(m as Map<String, dynamic>)).toList()
+            ? data
+                  .map((m) => Missao.fromJson(m as Map<String, dynamic>))
+                  .toList()
             : [];
         return missoes;
       } else {
@@ -75,7 +77,9 @@ class MissaoService {
       if (response.statusCode == 200) {
         final data = response.data;
         final atividades = (data is List)
-            ? data.map((a) => PessoaMissao.fromJson(a as Map<String, dynamic>)).toList()
+            ? data
+                  .map((a) => PessoaMissao.fromJson(a as Map<String, dynamic>))
+                  .toList()
             : [];
         return atividades;
       } else {
@@ -89,7 +93,10 @@ class MissaoService {
   }
 
   /// Obtém uma atividade específica
-  Future<PessoaMissao> obterAtividade(String pessoaId, String atividadeId) async {
+  Future<PessoaMissao> obterAtividade(
+    String pessoaId,
+    String atividadeId,
+  ) async {
     try {
       final response = await _dio.get(
         '${ApiConfig.baseUrl}/api/pessoas/$pessoaId/atividades/$atividadeId',
@@ -156,7 +163,10 @@ class MissaoService {
   }
 
   /// Inicia uma missão (marca como EM_ANDAMENTO)
-  Future<PessoaMissao> iniciarMissao(String pessoaId, String atividadeId) async {
+  Future<PessoaMissao> iniciarMissao(
+    String pessoaId,
+    String atividadeId,
+  ) async {
     final request = UpdateAtividadeRequest(
       status: AtividadeStatus.emAndamento,
       startedAt: DateTime.now(),
@@ -165,7 +175,10 @@ class MissaoService {
   }
 
   /// Conclui uma missão (marca como CONCLUIDA)
-  Future<PessoaMissao> concluirMissao(String pessoaId, String atividadeId) async {
+  Future<PessoaMissao> concluirMissao(
+    String pessoaId,
+    String atividadeId,
+  ) async {
     final request = UpdateAtividadeRequest(
       status: AtividadeStatus.concluida,
       completedAt: DateTime.now(),
@@ -174,10 +187,11 @@ class MissaoService {
   }
 
   /// Cancela uma atividade
-  Future<PessoaMissao> cancelarAtividade(String pessoaId, String atividadeId) async {
-    final request = UpdateAtividadeRequest(
-      status: AtividadeStatus.cancelada,
-    );
+  Future<PessoaMissao> cancelarAtividade(
+    String pessoaId,
+    String atividadeId,
+  ) async {
+    final request = UpdateAtividadeRequest(status: AtividadeStatus.cancelada);
     return atualizarAtividade(pessoaId, atividadeId, request);
   }
 

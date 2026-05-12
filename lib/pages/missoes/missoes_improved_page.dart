@@ -9,10 +9,8 @@ import '/services/gamification_state.dart';
 class MissoesImprovedPage extends ConsumerStatefulWidget {
   final GamificationState? gamificationState;
 
-  const MissoesImprovedPage({
-    Key? key,
-    this.gamificationState,
-  }) : super(key: key);
+  const MissoesImprovedPage({Key? key, this.gamificationState})
+    : super(key: key);
 
   @override
   ConsumerState<MissoesImprovedPage> createState() =>
@@ -56,9 +54,7 @@ class _MissoesImprovedPageState extends ConsumerState<MissoesImprovedPage>
       body: authDataAsync.when(
         data: (authData) {
           if (authData == null) {
-            return const Center(
-              child: Text('Você não está autenticado'),
-            );
+            return const Center(child: Text('Você não está autenticado'));
           }
 
           return TabBarView(
@@ -91,9 +87,8 @@ class _MissoesImprovedPageState extends ConsumerState<MissoesImprovedPage>
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Text('Erro ao carregar: $error'),
-        ),
+        error: (error, stack) =>
+            Center(child: Text('Erro ao carregar: $error')),
       ),
     );
   }
@@ -122,11 +117,7 @@ class _MissoesTab extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  _getIconForStatus(status),
-                  size: 64,
-                  color: Colors.grey,
-                ),
+                Icon(_getIconForStatus(status), size: 64, color: Colors.grey),
                 const SizedBox(height: 16),
                 Text(
                   'Nenhuma missão ${status.label.toLowerCase()}',
@@ -157,9 +148,7 @@ class _MissoesTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Text('Erro ao carregar: $error'),
-      ),
+      error: (error, stack) => Center(child: Text('Erro ao carregar: $error')),
     );
   }
 
@@ -205,10 +194,7 @@ class _CatalogoDeMissoesTab extends ConsumerWidget {
   final String pessoaId;
   final GamificationState? gamificationState;
 
-  const _CatalogoDeMissoesTab({
-    required this.pessoaId,
-    this.gamificationState,
-  });
+  const _CatalogoDeMissoesTab({required this.pessoaId, this.gamificationState});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -219,8 +205,7 @@ class _CatalogoDeMissoesTab extends ConsumerWidget {
       data: (missoes) => atividadesAsync.when(
         data: (atividades) {
           // Filtrar missões que já estão atribuídas
-          final missaoIdsAtribuidas =
-              atividades.map((a) => a.missaoId).toSet();
+          final missaoIdsAtribuidas = atividades.map((a) => a.missaoId).toSet();
           final missoesDisponiveis = missoes
               .where((m) => !missaoIdsAtribuidas.contains(m.id))
               .toList();
@@ -259,13 +244,10 @@ class _CatalogoDeMissoesTab extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) =>
-            Center(child: Text('Erro: $error')),
+        error: (error, stack) => Center(child: Text('Erro: $error')),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Text('Erro ao carregar: $error'),
-      ),
+      error: (error, stack) => Center(child: Text('Erro ao carregar: $error')),
     );
   }
 }
@@ -387,9 +369,9 @@ class _MissaoCard extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
       }
     }
   }
@@ -410,9 +392,9 @@ class _MissaoCard extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
       }
     }
   }
@@ -458,10 +440,7 @@ class _MissaoDisponibleCard extends ConsumerWidget {
           children: [
             Text(
               missao.titulo,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             if (missao.descricao.isNotEmpty)
               Padding(
@@ -509,9 +488,9 @@ class _MissaoDisponibleCard extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
       }
     }
   }

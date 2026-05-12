@@ -15,52 +15,53 @@ final missoesCatalogoProvider = FutureProvider<List<Missao>>((ref) async {
 /// Provider para listar atividades de uma pessoa
 final atividadesDaPessoaProvider =
     FutureProvider.family<List<PessoaMissao>, String>((ref, pessoaId) async {
-  final service = ref.watch(missaoServiceProvider);
-  return service.listarAtividadesDaPessoa(pessoaId);
-});
+      final service = ref.watch(missaoServiceProvider);
+      return service.listarAtividadesDaPessoa(pessoaId);
+    });
 
 /// Provider para atividades pendentes de uma pessoa
 final atividadesPendentesProvider =
     FutureProvider.family<List<PessoaMissao>, String>((ref, pessoaId) async {
-  final service = ref.watch(missaoServiceProvider);
-  return service.listarAtividadesDaPessoa(
-    pessoaId,
-    status: AtividadeStatus.pendente,
-  );
-});
+      final service = ref.watch(missaoServiceProvider);
+      return service.listarAtividadesDaPessoa(
+        pessoaId,
+        status: AtividadeStatus.pendente,
+      );
+    });
 
 /// Provider para atividades em andamento de uma pessoa
 final atividadesEmAndamentoProvider =
     FutureProvider.family<List<PessoaMissao>, String>((ref, pessoaId) async {
-  final service = ref.watch(missaoServiceProvider);
-  return service.listarAtividadesDaPessoa(
-    pessoaId,
-    status: AtividadeStatus.emAndamento,
-  );
-});
+      final service = ref.watch(missaoServiceProvider);
+      return service.listarAtividadesDaPessoa(
+        pessoaId,
+        status: AtividadeStatus.emAndamento,
+      );
+    });
 
 /// Provider para atividades concluídas de uma pessoa
 final atividadesConcluidasProvider =
     FutureProvider.family<List<PessoaMissao>, String>((ref, pessoaId) async {
-  final service = ref.watch(missaoServiceProvider);
-  return service.listarAtividadesDaPessoa(
-    pessoaId,
-    status: AtividadeStatus.concluida,
-  );
-});
+      final service = ref.watch(missaoServiceProvider);
+      return service.listarAtividadesDaPessoa(
+        pessoaId,
+        status: AtividadeStatus.concluida,
+      );
+    });
 
 /// State notifier para gerenciar ações de missões
 class MissaoNotifier extends StateNotifier<AsyncValue<void>> {
   final MissaoService service;
   final GamificationState? gamificationState;
 
-  MissaoNotifier({
-    required this.service,
-    this.gamificationState,
-  }) : super(const AsyncValue.data(null));
+  MissaoNotifier({required this.service, this.gamificationState})
+    : super(const AsyncValue.data(null));
 
   /// Inicia uma missão
-  Future<PessoaMissao> iniciarMissao(String pessoaId, String atividadeId) async {
+  Future<PessoaMissao> iniciarMissao(
+    String pessoaId,
+    String atividadeId,
+  ) async {
     state = const AsyncValue.loading();
     try {
       final resultado = await service.iniciarMissao(pessoaId, atividadeId);
@@ -127,10 +128,7 @@ class MissaoNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   /// Atribui uma missão a uma pessoa
-  Future<PessoaMissao> atribuirMissao(
-    String pessoaId,
-    String missaoId,
-  ) async {
+  Future<PessoaMissao> atribuirMissao(String pessoaId, String missaoId) async {
     state = const AsyncValue.loading();
     try {
       final request = AtribuirMissaoRequest(missaoId: missaoId);
@@ -147,7 +145,7 @@ class MissaoNotifier extends StateNotifier<AsyncValue<void>> {
 /// Provider para o notifier de ações de missões
 final missaoNotifierProvider =
     StateNotifierProvider<MissaoNotifier, AsyncValue<void>>((ref) {
-  final service = ref.watch(missaoServiceProvider);
-  // Se quiser integrar com gamificação, você pode injetar aqui
-  return MissaoNotifier(service: service);
-});
+      final service = ref.watch(missaoServiceProvider);
+      // Se quiser integrar com gamificação, você pode injetar aqui
+      return MissaoNotifier(service: service);
+    });

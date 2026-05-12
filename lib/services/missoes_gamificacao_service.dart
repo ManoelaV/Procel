@@ -22,15 +22,15 @@ class MissoesGamificacaoService {
     final progress = isCompleted
         ? 1.0
         : isInProgress
-            ? 0.5
-            : 0.0;
+        ? 0.5
+        : 0.0;
 
     // Botão de ação apropriado
     final buttonLabel = isCompleted
         ? 'Concluída'
         : isInProgress
-            ? 'Continuar'
-            : 'Começar';
+        ? 'Continuar'
+        : 'Começar';
 
     return GamificationMission(
       key: atividade.missaoId,
@@ -96,8 +96,10 @@ class MissoesGamificacaoService {
     String pessoaId,
     String atividadeId,
   ) async {
-    final resultado =
-        await missaoService.cancelarAtividade(pessoaId, atividadeId);
+    final resultado = await missaoService.cancelarAtividade(
+      pessoaId,
+      atividadeId,
+    );
 
     // Recarregar gamificação
     await gamificationState.loadFromBackend();
@@ -106,12 +108,12 @@ class MissoesGamificacaoService {
   }
 
   /// Atribuir uma nova missão a uma pessoa
-  Future<PessoaMissao> atribuirMissao(
-    String pessoaId,
-    String missaoId,
-  ) async {
+  Future<PessoaMissao> atribuirMissao(String pessoaId, String missaoId) async {
     final request = AtribuirMissaoRequest(missaoId: missaoId);
-    final resultado = await missaoService.atribuirMissaoAPessoa(pessoaId, request);
+    final resultado = await missaoService.atribuirMissaoAPessoa(
+      pessoaId,
+      request,
+    );
 
     // Recarregar gamificação
     await gamificationState.loadFromBackend();
@@ -134,26 +136,21 @@ class MissoesGamificacaoService {
     String pessoaId,
     AtividadeStatus status,
   ) async {
-    return missaoService.listarAtividadesDaPessoa(
-      pessoaId,
-      status: status,
-    );
+    return missaoService.listarAtividadesDaPessoa(pessoaId, status: status);
   }
 
   /// Obter resumo de atividades (contadores)
   Future<Map<String, int>> obterResumoAtividades(String pessoaId) async {
-    final todasAtividades =
-        await missaoService.listarAtividadesDaPessoa(pessoaId);
+    final todasAtividades = await missaoService.listarAtividadesDaPessoa(
+      pessoaId,
+    );
 
     return {
       'total': todasAtividades.length,
-      'pendentes':
-          todasAtividades.where((a) => a.isPending).length,
-      'em_andamento':
-          todasAtividades.where((a) => a.isInProgress).length,
+      'pendentes': todasAtividades.where((a) => a.isPending).length,
+      'em_andamento': todasAtividades.where((a) => a.isInProgress).length,
       'concluidas': todasAtividades.where((a) => a.isCompleted).length,
-      'canceladas':
-          todasAtividades.where((a) => a.isCanceled).length,
+      'canceladas': todasAtividades.where((a) => a.isCanceled).length,
     };
   }
 }

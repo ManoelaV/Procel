@@ -7,19 +7,19 @@ import '/models/missao_model.dart';
 final userIdProvider = FutureProvider<String?>((ref) async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Tenta obter userId do backend
     final userId = prefs.getString('backend_user_id');
     if (userId != null && userId.isNotEmpty) {
       return userId;
     }
-    
+
     // Fallback: tenta Firebase UID (se estiver usando Firebase Auth)
     // final user = FirebaseAuth.instance.currentUser;
     // if (user != null) {
     //   return user.uid;
     // }
-    
+
     return null;
   } catch (e) {
     throw Exception('Erro ao obter userId: $e');
@@ -62,12 +62,12 @@ class AuthData {
 final authDataProvider = FutureProvider<AuthData?>((ref) async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    
+
     final userId = prefs.getString('backend_user_id');
     final token = prefs.getString('procel_backend_access_token');
     final displayName = prefs.getString('backend_display_name');
     final email = prefs.getString('backend_email');
-    
+
     if (userId != null && token != null) {
       return AuthData(
         userId: userId,
@@ -76,7 +76,7 @@ final authDataProvider = FutureProvider<AuthData?>((ref) async {
         email: email,
       );
     }
-    
+
     return null;
   } catch (e) {
     throw Exception('Erro ao obter dados de autenticação: $e');

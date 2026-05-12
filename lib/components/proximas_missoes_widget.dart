@@ -8,10 +8,8 @@ import '/providers/auth_provider.dart';
 class ProximasMissoesWidget extends ConsumerWidget {
   final int maxMissoes;
 
-  const ProximasMissoesWidget({
-    Key? key,
-    this.maxMissoes = 3,
-  }) : super(key: key);
+  const ProximasMissoesWidget({Key? key, this.maxMissoes = 3})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,8 +21,9 @@ class ProximasMissoesWidget extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        final atividadesAsync =
-            ref.watch(atividadesEmAndamentoProvider(authData.userId));
+        final atividadesAsync = ref.watch(
+          atividadesEmAndamentoProvider(authData.userId),
+        );
 
         return atividadesAsync.when(
           data: (atividades) {
@@ -48,15 +47,14 @@ class ProximasMissoesWidget extends ConsumerWidget {
                       Text(
                         'Próximas Missões',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         '${atividades.where((a) => a.isInProgress).length} em andamento',
-                        style:
-                            Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.blue,
-                                ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: Colors.blue),
                       ),
                     ],
                   ),
@@ -108,11 +106,7 @@ class ProximasMissoesWidget extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              Icon(
-                Icons.check_circle,
-                size: 48,
-                color: Colors.green[300],
-              ),
+              Icon(Icons.check_circle, size: 48, color: Colors.green[300]),
               const SizedBox(height: 8),
               Text(
                 'Nenhuma missão em andamento',
@@ -137,10 +131,7 @@ class _MissaoCardCompacto extends ConsumerWidget {
   final PessoaMissao atividade;
   final String pessoaId;
 
-  const _MissaoCardCompacto({
-    required this.atividade,
-    required this.pessoaId,
-  });
+  const _MissaoCardCompacto({required this.atividade, required this.pessoaId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -213,9 +204,7 @@ class _MissaoCardCompacto extends ConsumerWidget {
     } else if (atividade.isInProgress) {
       return TextButton(
         onPressed: () => _concluirMissao(context, ref),
-        style: TextButton.styleFrom(
-          foregroundColor: Colors.green,
-        ),
+        style: TextButton.styleFrom(foregroundColor: Colors.green),
         child: const Text('Concluir'),
       );
     } else if (atividade.isCompleted) {
@@ -233,15 +222,15 @@ class _MissaoCardCompacto extends ConsumerWidget {
       await notifier.iniciarMissao(pessoaId, atividade.id);
       ref.invalidate(atividadesEmAndamentoProvider(pessoaId));
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Missão iniciada!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Missão iniciada!')));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
       }
     }
   }
@@ -261,9 +250,9 @@ class _MissaoCardCompacto extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
       }
     }
   }

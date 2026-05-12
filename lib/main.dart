@@ -1,11 +1,15 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'config/api_config.dart';
 import 'pages/backend_auth_screen.dart';
 import 'services/backend_session.dart';
 import 'services/gamification_state.dart';
 import 'services/backend_health_service.dart';
+import 'components/proximas_missoes_widget.dart';
+import 'components/resumo_missoes_widget.dart';
+import 'pages/missoes/missoes_improved_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,21 +22,23 @@ class EcoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => GamificationState(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'PROCEL',
-        theme: ThemeData(
-          useMaterial3: true,
-          scaffoldBackgroundColor: const Color(0xFFF7FBFA),
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF1F7A75),
-            brightness: Brightness.light,
+    return ProviderScope(
+      child: ChangeNotifierProvider(
+        create: (_) => GamificationState(),
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'PROCEL',
+          theme: ThemeData(
+            useMaterial3: true,
+            scaffoldBackgroundColor: const Color(0xFFF7FBFA),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF1F7A75),
+              brightness: Brightness.light,
+            ),
           ),
+          home: const BackendAuthScreen(),
+          routes: {'/shell': (context) => const ShellPage()},
         ),
-        home: const BackendAuthScreen(),
-        routes: {'/shell': (context) => const ShellPage()},
       ),
     );
   }
@@ -103,21 +109,18 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class MissionsScreen extends StatelessWidget {
+class MissionsScreen extends ConsumerWidget {
   const MissionsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final gamification = context.watch<GamificationState>();
     return _PageScaffold(
       title: '🎮 Missões',
-      subtitle:
-          '${gamification.completedMissionCount}/${gamification.totalMissionCount} diárias concluídas',
-      progress:
-          gamification.completedMissionCount / gamification.totalMissionCount,
-      progressLabel:
-          '${gamification.completedMissionCount}/${gamification.totalMissionCount} diárias concluídas',
-      child: _MissionsBody(),
+      subtitle: 'Gerenciar e concluir suas missões individuais',
+      progress: gamification.levelProgress,
+      progressLabel: gamification.levelLabel,
+      child: _MissionsBody(ref: ref),
     );
   }
 }
@@ -406,43 +409,46 @@ class _BackendHealthCard extends StatelessWidget {
 }
 
 class _MissionsBody extends StatelessWidget {
-  const _MissionsBody();
+  const _MissionsBody({required this.ref});
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
-    final gamification = context.watch<GamificationState>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTitle('📅 Missões diárias'),
-        SizedBox(height: 12),
-        ...gamification.missions.map(
-          (mission) => _MissionCard(
-            title: mission.title,
-            icon: mission.icon,
-            description: mission.description,
-            progress: mission.progress,
-            xp: mission.xpLabel,
-            coins: mission.coinsLabel,
-            buttonLabel: mission.buttonLabel,
-            completed: mission.completed,
-            onPressed: mission.completed
-                ? null
-                : () => context.read<GamificationState>().completeMission(
-                    gamification.missions.indexOf(mission),
+        _SectionTitle('📊 Resumo de Missões'),
+        const SizedBox(height: 12),
+        ResumoMissoesWidget(),
+        const SizedBox(height: 24),
+        _SectionTitle('⏰ Próximas Missões'),
+        const SizedBox(height: 12),
+        ProximasMissoesWidget(maxMissoes: 5),
+        const SizedBox(height: 24),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MissoesImprovedPage(
+                    gamificationState: context.read<GamificationState>(),
                   ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.check_circle_outlined),
+            label: const Text('Ver Todas as Missões'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              backgroundColor: const Color(0xFF1F7A75),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
           ),
-        ),
-        SizedBox(height: 24),
-        _SectionTitle('🎖️ Desafio da semana'),
-        SizedBox(height: 12),
-        _ChallengeCard(
-          title: 'Semana de Energia Mínima',
-          description: 'Reduza o consumo da sala em 25%',
-          progress: 0.7,
-          progressText: '35 / 50 kWh (70%)',
-          timeLeft: '5 dias restantes',
-          rewards: ['200 XP', '📊 Badge', '+25 moedas'],
         ),
       ],
     );

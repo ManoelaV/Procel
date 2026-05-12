@@ -23,9 +23,7 @@ class MissoesListaWidget extends ConsumerWidget {
     return atividadesAsync.when(
       data: (atividades) {
         if (atividades.isEmpty) {
-          return const Center(
-            child: Text('Nenhuma missão atribuída'),
-          );
+          return const Center(child: Text('Nenhuma missão atribuída'));
         }
 
         return ListView.builder(
@@ -41,9 +39,8 @@ class MissoesListaWidget extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Text('Erro ao carregar missões: $error'),
-      ),
+      error: (error, stack) =>
+          Center(child: Text('Erro ao carregar missões: $error')),
     );
   }
 }
@@ -141,9 +138,7 @@ class MissaoItemCard extends ConsumerWidget {
             padding: const EdgeInsets.only(left: 8),
             child: ElevatedButton(
               onPressed: () => _concluirMissao(context, ref),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
               child: const Text('Concluir'),
             ),
           ),
@@ -151,10 +146,7 @@ class MissaoItemCard extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: 8),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.green.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(4),
@@ -187,15 +179,15 @@ class MissaoItemCard extends ConsumerWidget {
       ref.invalidate(atividadesDaPessoaProvider(pessoaId));
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Missão iniciada!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Missão iniciada!')));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
       }
     }
   }
@@ -223,9 +215,9 @@ class MissaoItemCard extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
       }
     }
   }
