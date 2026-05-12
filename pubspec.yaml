@@ -18,9 +18,11 @@ dependencies:
 
   # State Management
   provider: ^6.1.5+1
+  flutter_riverpod: ^2.4.10
 
   # HTTP requests (para API)
   http: ^1.1.0
+  dio: ^5.4.0
 
   # JSON serialization (opcional, mas recomendado)
   json_annotation: ^4.9.0

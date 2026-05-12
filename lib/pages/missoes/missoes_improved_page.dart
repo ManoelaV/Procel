@@ -110,7 +110,7 @@ class _MissoesTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final atividadesAsync = _getAtividadesByStatus(ref, pessoaId, status);
 
-    return atividadesAsync.when(
+    return ref.watch(atividadesAsync).when(
       data: (atividades) {
         if (atividades.isEmpty) {
           return Center(

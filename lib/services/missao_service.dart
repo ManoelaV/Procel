@@ -23,12 +23,13 @@ class MissaoService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        final missoes = (data is List)
-            ? data
-                  .map((m) => Missao.fromJson(m as Map<String, dynamic>))
-                  .toList()
-            : [];
-        return missoes;
+        if (data is List) {
+          return data
+              .cast<Map<String, dynamic>>()
+              .map((m) => Missao.fromJson(m))
+              .toList();
+        }
+        return <Missao>[];
       } else {
         throw Exception('Erro ao listar missões: ${response.statusCode}');
       }
@@ -76,12 +77,13 @@ class MissaoService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        final atividades = (data is List)
-            ? data
-                  .map((a) => PessoaMissao.fromJson(a as Map<String, dynamic>))
-                  .toList()
-            : [];
-        return atividades;
+        if (data is List) {
+          return data
+              .cast<Map<String, dynamic>>()
+              .map((a) => PessoaMissao.fromJson(a))
+              .toList();
+        }
+        return <PessoaMissao>[];
       } else {
         throw Exception('Erro ao listar atividades: ${response.statusCode}');
       }
