@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '/models/missao_model.dart';
 import '/config/api_config.dart';
 
@@ -8,6 +9,25 @@ class MissaoService {
 
   MissaoService({Dio? dio}) : _dio = dio ?? Dio();
 
+  /// Obtém o token de autorização do SharedPreferences
+  Future<String?> _getAuthToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('procel_backend_access_token');
+  }
+
+  /// Prepara headers com autenticação
+  Future<Map<String, dynamic>> _getAuthHeaders() async {
+    final token = await _getAuthToken();
+    final headers = <String, dynamic>{
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    return headers;
+  }
+
   /// Lista todas as missões ativas
   Future<List<Missao>> listarMissoes({bool? ativo}) async {
     try {
@@ -16,9 +36,11 @@ class MissaoService {
         params['ativo'] = ativo;
       }
 
+      final headers = await _getAuthHeaders();
       final response = await _dio.get(
         '${ApiConfig.baseUrl}/api/missoes',
         queryParameters: params,
+        options: Options(headers: headers),
       );
 
       if (response.statusCode == 200) {
@@ -43,8 +65,10 @@ class MissaoService {
   /// Obtém uma missão específica
   Future<Missao> obterMissao(String missaoId) async {
     try {
+      final headers = await _getAuthHeaders();
       final response = await _dio.get(
         '${ApiConfig.baseUrl}/api/missoes/$missaoId',
+        options: Options(headers: headers),
       );
 
       if (response.statusCode == 200) {
@@ -70,9 +94,11 @@ class MissaoService {
         params['status'] = status.apiValue;
       }
 
+      final headers = await _getAuthHeaders();
       final response = await _dio.get(
         '${ApiConfig.baseUrl}/api/pessoas/$pessoaId/atividades',
         queryParameters: params,
+        options: Options(headers: headers),
       );
 
       if (response.statusCode == 200) {
@@ -100,8 +126,10 @@ class MissaoService {
     String atividadeId,
   ) async {
     try {
+      final headers = await _getAuthHeaders();
       final response = await _dio.get(
         '${ApiConfig.baseUrl}/api/pessoas/$pessoaId/atividades/$atividadeId',
+        options: Options(headers: headers),
       );
 
       if (response.statusCode == 200) {
@@ -122,9 +150,11 @@ class MissaoService {
     AtribuirMissaoRequest request,
   ) async {
     try {
+      final headers = await _getAuthHeaders();
       final response = await _dio.post(
         '${ApiConfig.baseUrl}/api/pessoas/$pessoaId/atividades',
         data: request.toJson(),
+        options: Options(headers: headers),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -147,9 +177,11 @@ class MissaoService {
     UpdateAtividadeRequest request,
   ) async {
     try {
+      final headers = await _getAuthHeaders();
       final response = await _dio.put(
         '${ApiConfig.baseUrl}/api/pessoas/$pessoaId/atividades/$atividadeId',
         data: request.toJson(),
+        options: Options(headers: headers),
       );
 
       if (response.statusCode == 200) {
@@ -200,8 +232,10 @@ class MissaoService {
   /// Remove uma atividade
   Future<void> removerAtividade(String pessoaId, String atividadeId) async {
     try {
+      final headers = await _getAuthHeaders();
       final response = await _dio.delete(
         '${ApiConfig.baseUrl}/api/pessoas/$pessoaId/atividades/$atividadeId',
+        options: Options(headers: headers),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
