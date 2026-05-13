@@ -7,18 +7,21 @@ PROCEL é uma aplicação mobile desenvolvida em Flutter que ajuda usuários a m
 ## O que já foi implementado?
 
 ### Estrutura Base
+
 - Projeto Flutter configurado e pronto para desenvolvimento
 - Integração com Firebase (Authentication, Firestore, Cloud Functions, Dynamic Links)
 - State management com Provider
 - Arquitetura organizada com separação de responsabilidades
 
 ### Autenticação e Usuários
+
 - Sistema de autenticação com Firebase
 - Gerenciamento de usuários no Firestore
 - Suporte para múltiplas formas de login (email, Google, Apple, GitHub)
 - Autenticação anônima disponível
 
 ### Páginas e Funcionalidades
+
 - Página de metas (adicionar, visualizar, gerenciar metas)
 - Página de sintomas relacionados a diabetes
 - Página de notificações
@@ -29,6 +32,7 @@ PROCEL é uma aplicação mobile desenvolvida em Flutter que ajuda usuários a m
 - Componentes reutilizáveis para interface
 
 ### Backend e Banco de Dados
+
 - Back-end Java/Spring Boot separado em `backend-repo/Procel-Ingestion`
 - PostgreSQL como banco do serviço de ingestão
 - Endpoints REST para autenticação, pessoas, presenças, sensores, medições, salas e regras
@@ -36,6 +40,7 @@ PROCEL é uma aplicação mobile desenvolvida em Flutter que ajuda usuários a m
 - Cloud Functions continuam no ecossistema Firebase quando necessário
 
 ### Recursos Adicionais
+
 - Sistema de notificações push
 - Armazenamento local com Shared Preferences
 - Ativos organizados (imagens, vídeos, áudios, PDFs, animações Rive)
@@ -68,7 +73,7 @@ docker compose up -d
 
 # Terminal 2 - front-end
 cd ..\..\
-flutter run --dart-define=API_BASE_URL=http://localhost:8080
+flutter run --dart-define=API_BASE_URL=https://procel.servehttp.com
 
 # Com logs detalhados
 flutter run -v
@@ -93,14 +98,14 @@ O back-end agora é um repositório independente em `backend-repo/`. Usamos um *
 
 ### Como funciona
 
-- **Automático**: A cada hora, o Action `.github/workflows/sync-backend.yml` clona o repositório do backend (`ravilon/PROCEL-Back-End`) e substitui o conteúdo em `backend-repo/`.
-- **Manual**: Você pode também rodar localmente o script `scripts/pull-backend-updates.ps1` para puxar atualizações na hora:
+- **Manual**: O workflow `.github/workflows/sync-backend.yml` agora roda apenas sob demanda, evitando execuções automáticas e e-mails quando o projeto está fechado.
+- **Local**: Você pode rodar o script `scripts/pull-backend-updates.ps1` quando abrir o projeto no VS Code e quiser puxar as atualizações na hora:
 
   ```powershell
   powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\pull-backend-updates.ps1
   ```
-  
-- **Commits automáticos**: Se houver mudanças, o Action comita e faz push automaticamente na branch main do front.
+
+- **Commits automáticos**: Se houver mudanças, o Action comita e faz push automaticamente na branch main do front quando for acionado manualmente.
 
 ### Se o backend for privado
 
