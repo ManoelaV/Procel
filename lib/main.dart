@@ -3,11 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart'
     hide ChangeNotifierProvider;
 import 'package:provider/provider.dart';
 
-import 'config/api_config.dart';
 import 'pages/backend_auth_screen.dart';
 import 'services/backend_session.dart';
 import 'services/gamification_state.dart';
-import 'services/backend_health_service.dart';
 import 'components/proximas_missoes_widget.dart';
 import 'components/resumo_missoes_widget.dart';
 import 'pages/missoes/missoes_improved_page.dart';
@@ -273,37 +271,6 @@ class _HomeBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FutureBuilder<BackendHealthResult>(
-          future: BackendHealthService.check(),
-          builder: (context, snapshot) {
-            final result = snapshot.data;
-            final isLoading =
-                snapshot.connectionState == ConnectionState.waiting;
-            final isHealthy = result?.ok == true;
-            final statusText = isLoading
-                ? 'Verificando back-end...'
-                : isHealthy
-                ? 'Back-end online'
-                : 'Back-end offline';
-            final detailText = isLoading
-                ? ApiConfig.healthUri.toString()
-                : result?.status ?? 'Sem resposta';
-
-            return _BackendHealthCard(
-              title: statusText,
-              detail: detailText,
-              accent: isHealthy
-                  ? const Color(0xFF27AE60)
-                  : const Color(0xFFC0392B),
-              icon: isLoading
-                  ? Icons.sync_rounded
-                  : isHealthy
-                  ? Icons.check_circle_rounded
-                  : Icons.cloud_off_rounded,
-            );
-          },
-        ),
-        const SizedBox(height: 24),
         const _SectionTitle('📊 Seu impacto'),
         const SizedBox(height: 12),
         _StatsGrid(
@@ -315,96 +282,8 @@ class _HomeBody extends StatelessWidget {
         const SizedBox(height: 24),
         const _SectionTitle('🎯 Próximas missões'),
         const SizedBox(height: 12),
-        ...gamification.missions
-            .take(3)
-            .map(
-              (mission) => _MissionCard(
-                title: mission.title,
-                icon: mission.icon,
-                description: mission.description,
-                progress: mission.progress,
-                xp: mission.xpLabel,
-                coins: mission.coinsLabel,
-                buttonLabel: mission.buttonLabel,
-                completed: mission.completed,
-                onPressed: mission.completed
-                    ? null
-                    : () => context.read<GamificationState>().completeMission(
-                        gamification.missions.indexOf(mission),
-                      ),
-              ),
-            ),
+        const ProximasMissoesWidget(maxMissoes: 3),
       ],
-    );
-  }
-}
-
-class _BackendHealthCard extends StatelessWidget {
-  const _BackendHealthCard({
-    required this.title,
-    required this.detail,
-    required this.accent,
-    required this.icon,
-  });
-
-  final String title;
-  final String detail;
-  final Color accent;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: accent.withValues(alpha: 0.22)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0B000000),
-            blurRadius: 16,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: accent),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  detail,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF6B7C7B),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -703,10 +582,10 @@ class _MissionCard extends StatelessWidget {
     required this.description,
     required this.progress,
     required this.xp,
+    required this.coins,
     required this.buttonLabel,
+    required this.completed,
     required this.onPressed,
-    this.coins,
-    this.completed = false,
   });
 
   final String title;

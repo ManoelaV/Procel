@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../backend/api_requests/api_manager.dart';
+import '/models/missao_model.dart';
+import 'backend_session.dart';
 import 'backend_gamification_service.dart';
+import 'missao_service.dart';
 
 class GamificationMission {
   GamificationMission({
@@ -54,7 +57,7 @@ class GamificationState extends ChangeNotifier {
           description: 'Desligue 3 luzes desnecessárias',
           rewardXp: 25,
           rewardCoins: 10,
-          progress: 0.66,
+          progress: 0.0,
           buttonLabel: 'Completar',
           completed: false,
         ),
@@ -76,7 +79,7 @@ class GamificationState extends ChangeNotifier {
           description: 'Verifique 2 salas e reporte anomalias',
           rewardXp: 20,
           rewardCoins: 5,
-          progress: 0.5,
+          progress: 0.0,
           buttonLabel: 'Continuar',
           completed: false,
         ),
@@ -87,9 +90,9 @@ class GamificationState extends ChangeNotifier {
           description: 'Desligar equipamentos em standby',
           rewardXp: 25,
           rewardCoins: 10,
-          progress: 1.0,
-          buttonLabel: 'Concluída',
-          completed: true,
+          progress: 0.0,
+          buttonLabel: 'Completar',
+          completed: false,
         ),
         GamificationMission(
           key: 'educar-e-compartilhar',
@@ -98,9 +101,9 @@ class GamificationState extends ChangeNotifier {
           description: 'Compartilhar 1 dica de economia',
           rewardXp: 15,
           rewardCoins: 0,
-          progress: 1.0,
-          buttonLabel: 'Concluída',
-          completed: true,
+          progress: 0.0,
+          buttonLabel: 'Completar',
+          completed: false,
         ),
       ] {
     Future.microtask(loadFromBackend);
@@ -134,12 +137,12 @@ class GamificationState extends ChangeNotifier {
   bool _loading = false;
   String? _errorMessage;
 
-  int _xp = 4200;
-  int _coins = 240;
-  int _streakDays = 23;
-  double _dailySavedKwh = 2.5;
-  double _totalSavedKwh = 125.0;
-  double _co2AvoidedKg = 62.5;
+  int _xp = 0;
+  int _coins = 0;
+  int _streakDays = 0;
+  double _dailySavedKwh = 0.0;
+  double _totalSavedKwh = 0.0;
+  double _co2AvoidedKg = 0.0;
 
   List<GamificationMission> get missions => List.unmodifiable(_missions);
   int get xp => _xp;
@@ -156,9 +159,8 @@ class GamificationState extends ChangeNotifier {
       _missions.where((mission) => mission.completed).length;
 
   int get level {
-    final computed = _levelThresholds.lastIndexWhere(
-      (threshold) => _xp >= threshold,
-    );
+    final computed =
+        _levelThresholds.lastIndexWhere((threshold) => _xp >= threshold) + 1;
     return computed.clamp(1, 6).toInt();
   }
 
@@ -232,7 +234,16 @@ class GamificationState extends ChangeNotifier {
       final snapshot = await BackendGamificationService.fetchMe();
       _applySnapshot(snapshot);
     } catch (error) {
-      _errorMessage = error.toString().replaceFirst('Exception: ', '');
+      try {
+        final fallbackSnapshot = await _buildFallbackSnapshot();
+        _applySnapshot(fallbackSnapshot);
+        _errorMessage = null;
+      } catch (fallbackError) {
+        _errorMessage = fallbackError.toString().replaceFirst(
+          'Exception: ',
+          '',
+        );
+      }
     } finally {
       _loading = false;
       notifyListeners();
@@ -290,6 +301,62 @@ class GamificationState extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  void applyMissionCompletion(PessoaMissao atividade) {
+    final xpGanho = atividade.missaoValue > 0 ? atividade.missaoValue : 0;
+    if (xpGanho == 0) {
+      return;
+    }
+
+    for (final mission in _missions) {
+      if (mission.key != atividade.missaoId) {
+        continue;
+      }
+
+      if (!mission.completed) {
+        _xp += xpGanho;
+        mission.completed = true;
+        mission.progress = 1.0;
+        mission.buttonLabel = 'Concluída';
+      }
+      notifyListeners();
+      return;
+    }
+
+    _xp += xpGanho;
+    notifyListeners();
+  }
+
+  Future<BackendGamificationSnapshot> _buildFallbackSnapshot() async {
+    final userId = await BackendSession.restoreUserId();
+    if (userId == null || userId.isEmpty) {
+      throw Exception('Nao foi possivel identificar o usuario logado.');
+    }
+
+    final atividades = await MissaoService().listarAtividadesDaPessoa(userId);
+    final atividadesConcluidas = atividades
+        .where((atividade) => atividade.isCompleted)
+        .toList();
+
+    final xpTotal = atividadesConcluidas.fold<int>(0, (acc, atividade) {
+      return acc + (atividade.missaoValue > 0 ? atividade.missaoValue : 0);
+    });
+
+    return BackendGamificationSnapshot(
+      userId: userId,
+      displayName: displayName,
+      schoolRoom: schoolRoom,
+      xp: xpTotal,
+      coins: _coins,
+      streakDays: _streakDays,
+      dailySavedKwh: _dailySavedKwh,
+      totalSavedKwh: _totalSavedKwh,
+      co2AvoidedKg: _co2AvoidedKg,
+      completedMissionKeys: atividadesConcluidas
+          .map((atividade) => atividade.missaoId)
+          .toList(),
+    );
   }
 
   static String _defaultButtonLabel(String missionKey) {

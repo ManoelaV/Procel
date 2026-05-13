@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '/models/missao_model.dart';
 import '/providers/missao_provider.dart';
 import '/providers/auth_provider.dart';
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart';
 import '/models/missao_model.dart';
 import '/providers/missao_provider.dart';
 import '/services/gamification_state.dart';
@@ -195,12 +196,14 @@ class MissaoItemCard extends ConsumerWidget {
   Future<void> _concluirMissao(BuildContext context, WidgetRef ref) async {
     try {
       final notifier = ref.read(missaoNotifierProvider.notifier);
-      await notifier.concluirMissao(
+      final concluida = await notifier.concluirMissao(
         pessoaId,
         atividade.id,
         rewardXp: 10,
         rewardCoins: 5,
       );
+
+      context.read<GamificationState>().applyMissionCompletion(concluida);
 
       // Recarrega as atividades
       ref.invalidate(atividadesDaPessoaProvider(pessoaId));

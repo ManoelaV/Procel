@@ -60,7 +60,7 @@ function Stop-Backend {
 
 Test-Prerequisites
 
-Write-Host "📋 Opções:" -ForegroundColor Yellow
+Write-Host " Opções:" -ForegroundColor Yellow
 Write-Host "1 - Iniciar Back-end (Java + PostgreSQL)"
 Write-Host "2 - Iniciar Front-end (Flutter)"
 Write-Host "3 - Iniciar AMBOS (em janelas diferentes)"

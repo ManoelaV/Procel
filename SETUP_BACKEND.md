@@ -118,6 +118,7 @@ Consulte a documentação Swagger para ver todos os endpoints:
 - **Remoto**: https://procel.servehttp.com/swagger-ui/index.html
 
 Alguns exemplos:
+
 - `POST /auth/login` - Autenticar
 - `POST /auth/cadastro` - Cadastro de usuário
 - `GET /sensores` - Listar sensores
@@ -142,12 +143,14 @@ git commit -m "Update backend-repo submodule"
 ## 📱 Rodando Front-end + Back-end Simultaneamente
 
 **Terminal 1** (Back-end):
+
 ```bash
 cd backend-repo/Procel-Ingestion
 .\mvnw.cmd spring-boot:run
 ```
 
 **Terminal 2** (Front-end):
+
 ```bash
 flutter run
 ```
@@ -157,14 +160,17 @@ flutter run
 ## ⚠️ Troubleshooting
 
 ### Erro de conexão recusada (Connection refused)
+
 - Certifique-se de que o PostgreSQL está rodando: `docker ps`
 - Certifique-se de que a API está rodando na porta 8080
 
 ### Erro CORS (Cross-Origin)
+
 - O back-end precisa estar configurado para aceitar requisições do front-end
 - Verifique `application.properties` ou `application.yml` no back-end
 
-### Erro de autenticação (401/403)
+### Erro de autenticação (401/403
+)
 - Verifique se está enviando o token JWT corretamente no header `Authorization: Bearer <token>`
 
 ---

@@ -73,6 +73,7 @@ docker compose up -d
 
 # Terminal 2 - front-end
 cd ..\..\
+# Para testar o front, use sempre o backend remoto
 flutter run --dart-define=API_BASE_URL=https://procel.servehttp.com
 
 # Com logs detalhados
@@ -142,21 +143,21 @@ Assim, o Action conseguirá clonar repositórios privados.
 
 O caminho principal do app agora fica assim:
 
-1. O Flutter sobe com `API_BASE_URL` apontando para o back-end Java.
+1. O Flutter sobe com `API_BASE_URL` apontando para o back-end remoto de testes.
 2. O back-end expõe a API em `/api/...` e persiste no PostgreSQL.
 3. O front consome os endpoints via `lib/config/api_config.dart`.
 4. O submodule `backend-repo/` mantém o código do back-end versionado junto do app.
-
-Base local padrão:
-
-```text
-http://localhost:8080
-```
 
 Base remota de testes:
 
 ```text
 https://procel.servehttp.com
+```
+
+Base local opcional, só se você quiser rodar o backend na máquina:
+
+```text
+http://localhost:8080
 ```
 
 ## Próximos Passos

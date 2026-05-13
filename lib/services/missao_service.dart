@@ -190,7 +190,12 @@ class MissaoService {
         throw Exception('Erro ao atualizar atividade: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      throw Exception('Erro de conexão ao atualizar atividade: ${e.message}');
+      final statusCode = e.response?.statusCode;
+      final responseData = e.response?.data;
+      final details = responseData == null ? '' : ' | resposta: $responseData';
+      throw Exception(
+        'Erro ao atualizar atividade${statusCode != null ? ' ($statusCode)' : ''}: ${e.message ?? e.type.name}$details',
+      );
     } catch (e) {
       throw Exception('Erro ao atualizar atividade: $e');
     }
@@ -203,7 +208,7 @@ class MissaoService {
   ) async {
     final request = UpdateAtividadeRequest(
       status: AtividadeStatus.emAndamento,
-      startedAt: DateTime.now(),
+      startedAt: DateTime.now().toUtc(),
     );
     return atualizarAtividade(pessoaId, atividadeId, request);
   }
@@ -215,7 +220,7 @@ class MissaoService {
   ) async {
     final request = UpdateAtividadeRequest(
       status: AtividadeStatus.concluida,
-      completedAt: DateTime.now(),
+      completedAt: DateTime.now().toUtc(),
     );
     return atualizarAtividade(pessoaId, atividadeId, request);
   }

@@ -22,14 +22,14 @@ String dateTimeRangeToString(DateTimeRange dateTimeRange) {
 }
 
 String placeToString(FFPlace place) => jsonEncode({
-      'latLng': place.latLng.serialize(),
-      'name': place.name,
-      'address': place.address,
-      'city': place.city,
-      'state': place.state,
-      'country': place.country,
-      'zipCode': place.zipCode,
-    });
+  'latLng': place.latLng.serialize(),
+  'name': place.name,
+  'address': place.address,
+  'city': place.city,
+  'state': place.state,
+  'country': place.country,
+  'zipCode': place.zipCode,
+});
 
 String uploadedFileToString(FFUploadedFile uploadedFile) =>
     uploadedFile.serialize();
@@ -63,13 +63,9 @@ dynamic serializeParameter(dynamic value) {
 }
 
 String serializeParameterData(Map<String, dynamic> parameterData) => jsonEncode(
-      parameterData.map(
-        (key, value) => MapEntry(
-          key,
-          serializeParameter(value),
-        ),
-      )..removeWhere((k, v) => k == null || v == null),
-    );
+  parameterData.map((key, value) => MapEntry(key, serializeParameter(value)))
+    ..removeWhere((k, v) => v == null),
+);
 
 /// END SERIALIZATION HELPERS
 
@@ -96,10 +92,7 @@ DateTimeRange? dateTimeRangeFromString(String dateTimeRangeStr) {
   if (start == null || end == null) {
     return null;
   }
-  return DateTimeRange(
-    start: start,
-    end: end,
-  );
+  return DateTimeRange(start: start, end: end);
 }
 
 LatLng? latLngFromString(String? latLngStr) {

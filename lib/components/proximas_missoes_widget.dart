@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart';
 import '/models/missao_model.dart';
 import '/providers/missao_provider.dart';
 import '/providers/auth_provider.dart';
+import '/services/gamification_state.dart';
 
 /// Widget para exibir próximas missões em destaque na home
 class ProximasMissoesWidget extends ConsumerWidget {
@@ -22,7 +24,7 @@ class ProximasMissoesWidget extends ConsumerWidget {
         }
 
         final atividadesAsync = ref.watch(
-          atividadesEmAndamentoProvider(authData.userId),
+          atividadesDaPessoaProvider(authData.userId),
         );
 
         return atividadesAsync.when(
@@ -31,7 +33,40 @@ class ProximasMissoesWidget extends ConsumerWidget {
               return _buildEmptyState(context);
             }
 
-            final proximasMissoes = atividades.take(maxMissoes).toList();
+            final proximasMissoes =
+                atividades
+                    .where(
+                      (atividade) =>
+                          atividade.status == AtividadeStatus.pendente ||
+                          atividade.status == AtividadeStatus.emAndamento,
+                    )
+                    .toList()
+                  ..sort((a, b) {
+                    int rank(AtividadeStatus status) {
+                      switch (status) {
+                        case AtividadeStatus.pendente:
+                          return 0;
+                        case AtividadeStatus.emAndamento:
+                          return 1;
+                        case AtividadeStatus.concluida:
+                          return 2;
+                        case AtividadeStatus.cancelada:
+                          return 3;
+                      }
+                    }
+
+                    final diff = rank(a.status).compareTo(rank(b.status));
+                    if (diff != 0) return diff;
+                    return a.assignedAt.compareTo(b.assignedAt);
+                  });
+
+            final missaoCount = proximasMissoes.length;
+            final totalVisiveis = proximasMissoes.length;
+            final listaVisivel = proximasMissoes.take(maxMissoes).toList();
+
+            if (totalVisiveis == 0) {
+              return _buildEmptyState(context);
+            }
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +86,7 @@ class ProximasMissoesWidget extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        '${atividades.where((a) => a.isInProgress).length} em andamento',
+                        '$missaoCount pendentes/em andamento',
                         style: Theme.of(
                           context,
                         ).textTheme.bodySmall?.copyWith(color: Colors.blue),
@@ -62,9 +97,9 @@ class ProximasMissoesWidget extends ConsumerWidget {
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: proximasMissoes.length,
+                  itemCount: listaVisivel.length,
                   itemBuilder: (context, index) {
-                    final missao = proximasMissoes[index];
+                    final missao = listaVisivel[index];
                     return _MissaoCardCompacto(
                       atividade: missao,
                       pessoaId: authData.userId,
@@ -109,12 +144,12 @@ class ProximasMissoesWidget extends ConsumerWidget {
               Icon(Icons.check_circle, size: 48, color: Colors.green[300]),
               const SizedBox(height: 8),
               Text(
-                'Nenhuma missão em andamento',
+                'Nenhuma missão pendente ou em andamento',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 4),
               Text(
-                'Acesse a aba de missões para começar uma nova!',
+                'Acesse a aba de missões para iniciar ou continuar uma missão.',
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
@@ -137,84 +172,110 @@ class _MissaoCardCompacto extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Card(
-        elevation: 2,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE3ECEA)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 16,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Ícone de status
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(atividade.status).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.play_circle,
-                  color: _getStatusColor(atividade.status),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Conteúdo
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      atividade.missaoTitulo ?? 'Missão',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (atividade.missaoDescricao != null &&
-                        atividade.missaoDescricao!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          atividade.missaoDescricao!,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          atividade.missaoTitulo ?? 'Missão',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall,
                         ),
-                      ),
-                    // XP e moedas
-                    if (atividade.missaoValue > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.amber.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                '${atividade.missaoValue} XP',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.amber,
-                                ),
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 6),
+                        Text(
+                          atividade.missaoDescricao ?? 'Missão atribuída',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: const Color(0xFF7A8A88)),
                         ),
-                      ),
-                  ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  _buildIconBadge(),
+                ],
+              ),
+              const SizedBox(height: 14),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: _progressValue,
+                  minHeight: 8,
+                  backgroundColor: const Color(0xFFE8EEED),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    _getStatusColor(atividade.status),
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
-              // Botão de ação
-              _buildBotaoAcao(context, ref),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (atividade.missaoValue > 0)
+                    _RewardChip(
+                      label: '${atividade.missaoValue} XP',
+                      background: const Color(0xFFEAF6EA),
+                      foreground: const Color(0xFF2E9D55),
+                    ),
+                  if (atividade.missaoValue > 0)
+                    _RewardChip(
+                      label: '+10 moedas',
+                      background: const Color(0xFFFFF3E0),
+                      foreground: const Color(0xFFF4A261),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _getActionCallback(context, ref),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A7A6E),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    _buttonLabel,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -222,32 +283,92 @@ class _MissaoCardCompacto extends ConsumerWidget {
     );
   }
 
-  Widget _buildBotaoAcao(BuildContext context, WidgetRef ref) {
-    if (atividade.isPending) {
-      return TextButton(
-        onPressed: () => _iniciarMissao(context, ref),
-        child: const Text('Iniciar'),
-      );
-    } else if (atividade.isInProgress) {
-      return TextButton(
-        onPressed: () => _concluirMissao(context, ref),
-        style: TextButton.styleFrom(foregroundColor: Colors.green),
-        child: const Text('Concluir'),
-      );
-    } else if (atividade.isCompleted) {
-      return Chip(
-        label: const Text('✓'),
-        backgroundColor: Colors.green.withOpacity(0.2),
-      );
+  Widget _buildIconBadge() {
+    final icon = switch (atividade.status) {
+      AtividadeStatus.pendente => Icons.lightbulb_outline_rounded,
+      AtividadeStatus.emAndamento => Icons.play_circle_fill_rounded,
+      AtividadeStatus.concluida => Icons.check_circle_rounded,
+      AtividadeStatus.cancelada => Icons.cancel_rounded,
+    };
+
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        color: _getStatusColor(atividade.status).withOpacity(0.12),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, color: _getStatusColor(atividade.status), size: 24),
+    );
+  }
+
+  double get _progressValue {
+    switch (atividade.status) {
+      case AtividadeStatus.pendente:
+        return 0.18;
+      case AtividadeStatus.emAndamento:
+        return 0.55;
+      case AtividadeStatus.concluida:
+        return 1.0;
+      case AtividadeStatus.cancelada:
+        return 0.0;
     }
-    return const SizedBox.shrink();
+  }
+
+  String get _buttonLabel {
+    switch (atividade.status) {
+      case AtividadeStatus.pendente:
+        return 'Começar';
+      case AtividadeStatus.emAndamento:
+        return 'Continuar';
+      case AtividadeStatus.concluida:
+        return 'Concluída';
+      case AtividadeStatus.cancelada:
+        return 'Cancelar';
+    }
+  }
+
+  VoidCallback? _getActionCallback(BuildContext context, WidgetRef ref) {
+    if (atividade.isPending) {
+      return () => _iniciarMissao(context, ref);
+    } else if (atividade.isInProgress) {
+      return () => _concluirMissao(context, ref);
+    } else if (atividade.isCompleted) {
+      return null;
+    }
+    return null;
+  }
+
+  Widget _RewardChip({
+    required String label,
+    required Color background,
+    required Color foreground,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: foreground,
+        ),
+      ),
+    );
   }
 
   Future<void> _iniciarMissao(BuildContext context, WidgetRef ref) async {
     try {
       final notifier = ref.read(missaoNotifierProvider.notifier);
       await notifier.iniciarMissao(pessoaId, atividade.id);
+      ref.invalidate(atividadesDaPessoaProvider(pessoaId));
+      ref.invalidate(atividadesPendentesProvider(pessoaId));
       ref.invalidate(atividadesEmAndamentoProvider(pessoaId));
+      ref.invalidate(atividadesConcluidasProvider(pessoaId));
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
@@ -265,8 +386,12 @@ class _MissaoCardCompacto extends ConsumerWidget {
   Future<void> _concluirMissao(BuildContext context, WidgetRef ref) async {
     try {
       final notifier = ref.read(missaoNotifierProvider.notifier);
-      await notifier.concluirMissao(pessoaId, atividade.id);
+      final concluida = await notifier.concluirMissao(pessoaId, atividade.id);
+      context.read<GamificationState>().applyMissionCompletion(concluida);
+      ref.invalidate(atividadesDaPessoaProvider(pessoaId));
+      ref.invalidate(atividadesPendentesProvider(pessoaId));
       ref.invalidate(atividadesEmAndamentoProvider(pessoaId));
+      ref.invalidate(atividadesConcluidasProvider(pessoaId));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

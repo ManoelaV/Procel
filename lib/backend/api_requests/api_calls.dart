@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
-import '../schema/structs/index.dart';
 
 import 'package:flutter/foundation.dart';
 
@@ -24,10 +22,7 @@ class ApinewsCall {
       headers: {
         'Key': 'apiKey Value: 5hsonTmV-3m2FVENRjiXmZ90GHtBlB8Bn0_B7RoKJh4WbpOQ',
       },
-      params: {
-        'page_number': pageNumber,
-        'page_size': 10,
-      },
+      params: {'page_number': pageNumber, 'page_size': 10},
       returnBody: true,
       encodeBodyUtf8: false,
       decodeUtf8: true,
@@ -37,43 +32,28 @@ class ApinewsCall {
     );
   }
 
-  static List? noticias(dynamic response) => getJsonField(
-        response,
-        r'''$.news''',
-        true,
-      ) as List?;
-  static List<String>? titulo(dynamic response) => (getJsonField(
-        response,
-        r'''$.news[:].title''',
-        true,
-      ) as List?)
+  static List? noticias(dynamic response) =>
+      getJsonField(response, r'''$.news''', true) as List?;
+  static List<String>? titulo(dynamic response) =>
+      (getJsonField(response, r'''$.news[:].title''', true) as List?)
           ?.withoutNulls
           .map((x) => castToType<String>(x))
           .withoutNulls
           .toList();
-  static List<String>? descricao(dynamic response) => (getJsonField(
-        response,
-        r'''$.news[:].description''',
-        true,
-      ) as List?)
+  static List<String>? descricao(dynamic response) =>
+      (getJsonField(response, r'''$.news[:].description''', true) as List?)
           ?.withoutNulls
           .map((x) => castToType<String>(x))
           .withoutNulls
           .toList();
-  static List<String>? link(dynamic response) => (getJsonField(
-        response,
-        r'''$.news[:].url''',
-        true,
-      ) as List?)
+  static List<String>? link(dynamic response) =>
+      (getJsonField(response, r'''$.news[:].url''', true) as List?)
           ?.withoutNulls
           .map((x) => castToType<String>(x))
           .withoutNulls
           .toList();
-  static List<String>? image(dynamic response) => (getJsonField(
-        response,
-        r'''$.news[:].image''',
-        true,
-      ) as List?)
+  static List<String>? image(dynamic response) =>
+      (getJsonField(response, r'''$.news[:].image''', true) as List?)
           ?.withoutNulls
           .map((x) => castToType<String>(x))
           .withoutNulls
@@ -97,14 +77,10 @@ class FlaskAPICall {
     );
   }
 
-  static String? message(dynamic response) => castToType<String>(getJsonField(
-        response,
-        r'''$.message''',
-      ));
-  static String? status(dynamic response) => castToType<String>(getJsonField(
-        response,
-        r'''$.status''',
-      ));
+  static String? message(dynamic response) =>
+      castToType<String>(getJsonField(response, r'''$.message'''));
+  static String? status(dynamic response) =>
+      castToType<String>(getJsonField(response, r'''$.status'''));
 }
 
 class RegistrausuarioCall {

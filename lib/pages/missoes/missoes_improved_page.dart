@@ -386,8 +386,8 @@ class _MissaoCard extends ConsumerWidget {
   Future<void> _concluirMissao(BuildContext context, WidgetRef ref) async {
     try {
       final notifier = ref.read(missaoNotifierProvider.notifier);
-      await notifier.concluirMissao(pessoaId, atividade.id);
-      gamificationState?.loadFromBackend();
+      final concluida = await notifier.concluirMissao(pessoaId, atividade.id);
+      gamificationState?.applyMissionCompletion(concluida);
       onAtualizar();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

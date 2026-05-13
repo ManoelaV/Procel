@@ -45,7 +45,8 @@ class Missao {
   }
 
   @override
-  String toString() => 'Missao(id: $id, titulo: $titulo, tipo: $tipo, value: $value XP, ativo: $ativo)';
+  String toString() =>
+      'Missao(id: $id, titulo: $titulo, tipo: $tipo, value: $value XP, ativo: $ativo)';
 }
 
 /// Enum para Status de Atividade
@@ -196,7 +197,7 @@ class AtribuirMissaoRequest {
     return {
       'missaoId': missaoId,
       if (status != null) 'status': status!.apiValue,
-      if (startedAt != null) 'startedAt': startedAt!.toIso8601String(),
+      if (startedAt != null) 'startedAt': startedAt!.toUtc().toIso8601String(),
     };
   }
 }
@@ -216,8 +217,9 @@ class UpdateAtividadeRequest {
   Map<String, dynamic> toJson() {
     return {
       'status': status.apiValue,
-      if (startedAt != null) 'startedAt': startedAt!.toIso8601String(),
-      if (completedAt != null) 'completedAt': completedAt!.toIso8601String(),
+      if (startedAt != null) 'startedAt': startedAt!.toUtc().toIso8601String(),
+      if (completedAt != null)
+        'completedAt': completedAt!.toUtc().toIso8601String(),
     };
   }
 }

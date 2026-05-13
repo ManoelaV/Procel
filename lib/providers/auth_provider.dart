@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '/models/missao_model.dart';
 
 /// Provider para obter o userId do usuário logado
 /// Tenta obter do SharedPreferences ou Firebase Auth

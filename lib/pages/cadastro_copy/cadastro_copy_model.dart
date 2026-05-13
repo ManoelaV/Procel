@@ -1,18 +1,10 @@
-import '/auth/firebase_auth/auth_util.dart';
-import '/flutter_flow/flutter_flow_animations.dart';
-import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:math';
-import 'dart:ui';
 import '/index.dart';
 import 'cadastro_copy_widget.dart' show CadastroCopyWidget;
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 class CadastroCopyModel extends FlutterFlowModel<CadastroCopyWidget> {
@@ -33,19 +25,19 @@ class CadastroCopyModel extends FlutterFlowModel<CadastroCopyWidget> {
   FocusNode? emailAddressCreateFocusNode;
   TextEditingController? emailAddressCreateTextController;
   String? Function(BuildContext, String?)?
-      emailAddressCreateTextControllerValidator;
+  emailAddressCreateTextControllerValidator;
   // State field(s) for password_Create widget.
   FocusNode? passwordCreateFocusNode;
   TextEditingController? passwordCreateTextController;
   late bool passwordCreateVisibility;
   String? Function(BuildContext, String?)?
-      passwordCreateTextControllerValidator;
+  passwordCreateTextControllerValidator;
   // State field(s) for password_Confirm widget.
   FocusNode? passwordConfirmFocusNode;
   TextEditingController? passwordConfirmTextController;
   late bool passwordConfirmVisibility;
   String? Function(BuildContext, String?)?
-      passwordConfirmTextControllerValidator;
+  passwordConfirmTextControllerValidator;
   // State field(s) for emailAddress widget.
   FocusNode? emailAddressFocusNode;
   TextEditingController? emailAddressTextController;
