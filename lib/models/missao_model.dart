@@ -110,6 +110,8 @@ class PessoaMissao {
   // Dados da missão preenchidos (para exibição)
   String? missaoTitulo;
   String? missaoDescricao;
+  String? missaoTipo;
+  int missaoValue;
   String? pessoaNome;
 
   PessoaMissao({
@@ -122,6 +124,8 @@ class PessoaMissao {
     this.completedAt,
     this.missaoTitulo,
     this.missaoDescricao,
+    this.missaoTipo,
+    this.missaoValue = 0,
     this.pessoaNome,
   });
 
@@ -142,6 +146,8 @@ class PessoaMissao {
           : null,
       missaoTitulo: json['missaoTitulo'] as String?,
       missaoDescricao: json['missaoDescricao'] as String?,
+      missaoTipo: json['missaoTipo'] as String? ?? 'Individual',
+      missaoValue: json['missaoValue'] as int? ?? 0,
       pessoaNome: json['pessoaNome'] as String?,
     );
   }
@@ -157,6 +163,8 @@ class PessoaMissao {
       'completedAt': completedAt?.toIso8601String(),
       'missaoTitulo': missaoTitulo,
       'missaoDescricao': missaoDescricao,
+      'missaoTipo': missaoTipo,
+      'missaoValue': missaoValue,
       'pessoaNome': pessoaNome,
     };
   }
@@ -173,7 +181,7 @@ class PessoaMissao {
 
   @override
   String toString() =>
-      'PessoaMissao(id: $id, missao: $missaoTitulo, status: ${status.label})';
+      'PessoaMissao(id: $id, missao: $missaoTitulo, status: ${status.label}, xp: $missaoValue)';
 }
 
 /// DTO para criar/atribuir missão
