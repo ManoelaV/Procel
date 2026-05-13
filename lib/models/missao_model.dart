@@ -3,6 +3,8 @@ class Missao {
   final String id;
   final String titulo;
   final String descricao;
+  final String tipo;
+  final int value;
   final bool ativo;
   final DateTime createdAt;
 
@@ -10,6 +12,8 @@ class Missao {
     required this.id,
     required this.titulo,
     required this.descricao,
+    this.tipo = 'Individual',
+    this.value = 0,
     required this.ativo,
     required this.createdAt,
   });
@@ -19,6 +23,8 @@ class Missao {
       id: json['id'] as String,
       titulo: json['titulo'] as String,
       descricao: json['descricao'] as String? ?? '',
+      tipo: json['tipo'] as String? ?? 'Individual',
+      value: json['value'] as int? ?? 0,
       ativo: json['ativo'] as bool? ?? true,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
@@ -31,13 +37,15 @@ class Missao {
       'id': id,
       'titulo': titulo,
       'descricao': descricao,
+      'tipo': tipo,
+      'value': value,
       'ativo': ativo,
       'createdAt': createdAt.toIso8601String(),
     };
   }
 
   @override
-  String toString() => 'Missao(id: $id, titulo: $titulo, ativo: $ativo)';
+  String toString() => 'Missao(id: $id, titulo: $titulo, tipo: $tipo, value: $value XP, ativo: $ativo)';
 }
 
 /// Enum para Status de Atividade
