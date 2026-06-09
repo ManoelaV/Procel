@@ -107,27 +107,39 @@ LatLng? latLngFromString(String? latLngStr) {
 }
 
 FFPlace placeFromString(String placeStr) {
-  final serializedData = jsonDecode(placeStr) as Map<String, dynamic>;
-  final data = {
-    'latLng': serializedData.containsKey('latLng')
-        ? latLngFromString(serializedData['latLng'] as String)
-        : const LatLng(0.0, 0.0),
-    'name': serializedData['name'] ?? '',
-    'address': serializedData['address'] ?? '',
-    'city': serializedData['city'] ?? '',
-    'state': serializedData['state'] ?? '',
-    'country': serializedData['country'] ?? '',
-    'zipCode': serializedData['zipCode'] ?? '',
-  };
-  return FFPlace(
-    latLng: data['latLng'] as LatLng,
-    name: data['name'] as String,
-    address: data['address'] as String,
-    city: data['city'] as String,
-    state: data['state'] as String,
-    country: data['country'] as String,
-    zipCode: data['zipCode'] as String,
-  );
+  try {
+    final serializedData = jsonDecode(placeStr) as Map<String, dynamic>;
+    final data = {
+      'latLng': serializedData.containsKey('latLng')
+          ? latLngFromString(serializedData['latLng'] as String)
+          : const LatLng(0.0, 0.0),
+      'name': serializedData['name'] ?? '',
+      'address': serializedData['address'] ?? '',
+      'city': serializedData['city'] ?? '',
+      'state': serializedData['state'] ?? '',
+      'country': serializedData['country'] ?? '',
+      'zipCode': serializedData['zipCode'] ?? '',
+    };
+    return FFPlace(
+      latLng: data['latLng'] as LatLng,
+      name: data['name'] as String,
+      address: data['address'] as String,
+      city: data['city'] as String,
+      state: data['state'] as String,
+      country: data['country'] as String,
+      zipCode: data['zipCode'] as String,
+    );
+  } catch (_) {
+    return const FFPlace(
+      latLng: LatLng(0.0, 0.0),
+      name: '',
+      address: '',
+      city: '',
+      state: '',
+      country: '',
+      zipCode: '',
+    );
+  }
 }
 
 FFUploadedFile uploadedFileFromString(String uploadedFileStr) =>

@@ -24,17 +24,28 @@ String dateTimeRangeToString(DateTimeRange dateTimeRange) {
 }
 
 String placeToString(FFPlace place) => jsonEncode({
-      'latLng': place.latLng.serialize(),
-      'name': place.name,
-      'address': place.address,
-      'city': place.city,
-      'state': place.state,
-      'country': place.country,
-      'zipCode': place.zipCode,
-    });
+  'latLng': place.latLng.serialize(),
+  'name': place.name,
+  'address': place.address,
+  'city': place.city,
+  'state': place.state,
+  'country': place.country,
+  'zipCode': place.zipCode,
+});
 
 String uploadedFileToString(FFUploadedFile uploadedFile) =>
     uploadedFile.serialize();
+
+dynamic _safeJsonDecode(String? value) {
+  if (value == null || value.isEmpty) {
+    return null;
+  }
+  try {
+    return json.decode(value);
+  } catch (_) {
+    return null;
+  }
+}
 
 const _kDocIdDelimeter = '|';
 String _serializeDocumentReference(DocumentReference ref) {
@@ -150,10 +161,7 @@ DateTimeRange? dateTimeRangeFromString(String dateTimeRangeStr) {
   if (start == null || end == null) {
     return null;
   }
-  return DateTimeRange(
-    start: start,
-    end: end,
-  );
+  return DateTimeRange(start: start, end: end);
 }
 
 LatLng? latLngFromString(String? latLngStr) {
@@ -168,27 +176,39 @@ LatLng? latLngFromString(String? latLngStr) {
 }
 
 FFPlace placeFromString(String placeStr) {
-  final serializedData = jsonDecode(placeStr) as Map<String, dynamic>;
-  final data = {
-    'latLng': serializedData.containsKey('latLng')
-        ? latLngFromString(serializedData['latLng'] as String)
-        : const LatLng(0.0, 0.0),
-    'name': serializedData['name'] ?? '',
-    'address': serializedData['address'] ?? '',
-    'city': serializedData['city'] ?? '',
-    'state': serializedData['state'] ?? '',
-    'country': serializedData['country'] ?? '',
-    'zipCode': serializedData['zipCode'] ?? '',
-  };
-  return FFPlace(
-    latLng: data['latLng'] as LatLng,
-    name: data['name'] as String,
-    address: data['address'] as String,
-    city: data['city'] as String,
-    state: data['state'] as String,
-    country: data['country'] as String,
-    zipCode: data['zipCode'] as String,
-  );
+  try {
+    final serializedData = jsonDecode(placeStr) as Map<String, dynamic>;
+    final data = {
+      'latLng': serializedData.containsKey('latLng')
+          ? latLngFromString(serializedData['latLng'] as String)
+          : const LatLng(0.0, 0.0),
+      'name': serializedData['name'] ?? '',
+      'address': serializedData['address'] ?? '',
+      'city': serializedData['city'] ?? '',
+      'state': serializedData['state'] ?? '',
+      'country': serializedData['country'] ?? '',
+      'zipCode': serializedData['zipCode'] ?? '',
+    };
+    return FFPlace(
+      latLng: data['latLng'] as LatLng,
+      name: data['name'] as String,
+      address: data['address'] as String,
+      city: data['city'] as String,
+      state: data['state'] as String,
+      country: data['country'] as String,
+      zipCode: data['zipCode'] as String,
+    );
+  } catch (_) {
+    return const FFPlace(
+      latLng: LatLng(0.0, 0.0),
+      name: '',
+      address: '',
+      city: '',
+      state: '',
+      country: '',
+      zipCode: '',
+    );
+  }
 }
 
 FFUploadedFile uploadedFileFromString(String uploadedFileStr) =>
@@ -236,20 +256,22 @@ dynamic deserializeParam<T>(
       return null;
     }
     if (isList) {
-      final paramValues = json.decode(param);
+      final paramValues = _safeJsonDecode(param);
       if (paramValues is! Iterable || paramValues.isEmpty) {
         return null;
       }
       return paramValues
           .where((p) => p is String)
           .map((p) => p as String)
-          .map((p) => deserializeParam<T>(
-                p,
-                paramType,
-                false,
-                collectionNamePath: collectionNamePath,
-                structBuilder: structBuilder,
-              ))
+          .map(
+            (p) => deserializeParam<T>(
+              p,
+              paramType,
+              false,
+              collectionNamePath: collectionNamePath,
+              structBuilder: structBuilder,
+            ),
+          )
           .where((p) => p != null)
           .map((p) => p! as T)
           .toList();
@@ -276,12 +298,15 @@ dynamic deserializeParam<T>(
       case ParamType.FFUploadedFile:
         return uploadedFileFromString(param);
       case ParamType.JSON:
-        return json.decode(param);
+        return _safeJsonDecode(param) ?? param;
       case ParamType.DocumentReference:
         return _deserializeDocumentReference(param, collectionNamePath ?? []);
 
       case ParamType.DataStruct:
-        final data = json.decode(param) as Map<String, dynamic>? ?? {};
+        final decoded = _safeJsonDecode(param);
+        final data = decoded is Map<String, dynamic>
+            ? decoded
+            : <String, dynamic>{};
         return structBuilder != null ? structBuilder(data) : null;
 
       default:
@@ -297,9 +322,10 @@ Future<dynamic> Function(String) getDoc(
   List<String> collectionNamePath,
   RecordBuilder recordBuilder,
 ) {
-  return (String ids) => _deserializeDocumentReference(ids, collectionNamePath)
-      .get()
-      .then((s) => recordBuilder(s));
+  return (String ids) => _deserializeDocumentReference(
+    ids,
+    collectionNamePath,
+  ).get().then((s) => recordBuilder(s));
 }
 
 Future<List<T>> Function(String) getDocList<T>(
@@ -314,9 +340,10 @@ Future<List<T>> Function(String) getDocList<T>(
     } catch (_) {}
     return Future.wait(
       docIds.map(
-        (ids) => _deserializeDocumentReference(ids, collectionNamePath)
-            .get()
-            .then((s) => recordBuilder(s)),
+        (ids) => _deserializeDocumentReference(
+          ids,
+          collectionNamePath,
+        ).get().then((s) => recordBuilder(s)),
       ),
     ).then((docs) => docs.where((d) => d != null).map((d) => d!).toList());
   };

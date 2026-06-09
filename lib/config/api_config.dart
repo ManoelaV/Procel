@@ -1,5 +1,7 @@
 // ignore_for_file: constant_identifier_names
 
+import 'package:flutter/foundation.dart';
+
 /// Configurações de conexão com o back-end.
 class ApiConfig {
   /// URL base da API.
@@ -8,7 +10,7 @@ class ApiConfig {
   /// `flutter run --dart-define=API_BASE_URL=http://seu-url`
   static const String API_BASE_URL = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:8080',
+    defaultValue: '',
   );
 
   /// Prefixo comum do back-end Java.
@@ -23,9 +25,27 @@ class ApiConfig {
     'Accept': 'application/json',
   };
 
-  static String get _normalizedBaseUrl => API_BASE_URL.endsWith('/')
-      ? API_BASE_URL.substring(0, API_BASE_URL.length - 1)
-      : API_BASE_URL;
+  static String get _resolvedBaseUrl {
+    if (API_BASE_URL.isNotEmpty) {
+      return API_BASE_URL;
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return 'http://10.0.2.2:8080';
+      case TargetPlatform.iOS:
+        return 'http://127.0.0.1:8080';
+      case TargetPlatform.macOS:
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
+      case TargetPlatform.fuchsia:
+        return 'http://localhost:8080';
+    }
+  }
+
+  static String get _normalizedBaseUrl => _resolvedBaseUrl.endsWith('/')
+      ? _resolvedBaseUrl.substring(0, _resolvedBaseUrl.length - 1)
+      : _resolvedBaseUrl;
 
   /// URL base pública para uso em services
   static String get baseUrl => _normalizedBaseUrl;

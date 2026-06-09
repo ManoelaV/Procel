@@ -80,8 +80,7 @@ class BackendSession {
       body: jsonEncode({'email': email, 'password': password}),
     );
 
-    final bodyText = response.body.isNotEmpty ? response.body : '{}';
-    final decoded = jsonDecode(bodyText) as Map<String, dynamic>;
+    final decoded = _decodeResponseBody(response.body);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
@@ -97,5 +96,18 @@ class BackendSession {
       await saveUserId(result.userId);
     }
     return result;
+  }
+
+  static Map<String, dynamic> _decodeResponseBody(String body) {
+    if (body.trim().isEmpty) {
+      return {};
+    }
+
+    try {
+      final decoded = jsonDecode(body);
+      return decoded is Map<String, dynamic> ? decoded : {};
+    } catch (_) {
+      return {};
+    }
   }
 }

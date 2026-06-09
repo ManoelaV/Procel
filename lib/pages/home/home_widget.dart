@@ -36,7 +36,7 @@ class _HomeWidgetState extends State<HomeWidget> {
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
-                const ProximasMissoesWidget(maxMissoes: 5),
+                const ProximasMissoesWidget(maxMissoes = 5),
                                                 color:
                                                     FlutterFlowTheme.of(context)
                                                         .secondaryText,
@@ -51,22 +51,22 @@ class _HomeWidgetState extends State<HomeWidget> {
                                                         .fontStyle,
                                               ),
                                         ),
-                                      ].divide(SizedBox(height: 4.0)),
+                                      ].divide(SizedBox(height = 4.0)),
                                     ),
                                   ),
                                 ),
                               ),
-                            ].divide(SizedBox(width: 12.0)),
+                            ].divide(SizedBox(width = 12.0)),
                           ),
-                        ].divide(SizedBox(height: 12.0)),
+                        ].divide(SizedBox(height = 12.0)),
                       ),
                     ),
                   ),
                 ),
                 Padding(
-                  padding:
+                  padding =
                       EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 16.0),
-                  child: Container(
+                  child = Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: FlutterFlowTheme.of(context).primaryBackground,
@@ -319,8 +319,8 @@ class _HomeWidgetState extends State<HomeWidget> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                  child: Container(
+                  padding = EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                  child = Container(
                     width: double.infinity,
                     height: 70.0,
                     decoration: BoxDecoration(

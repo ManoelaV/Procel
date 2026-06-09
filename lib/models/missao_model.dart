@@ -188,15 +188,19 @@ class PessoaMissao {
 /// DTO para criar/atribuir missão
 class AtribuirMissaoRequest {
   final String missaoId;
-  final AtividadeStatus? status;
+  final AtividadeStatus status;
   final DateTime? startedAt;
 
-  AtribuirMissaoRequest({required this.missaoId, this.status, this.startedAt});
+  AtribuirMissaoRequest({
+    required this.missaoId,
+    this.status = AtividadeStatus.pendente,
+    this.startedAt,
+  });
 
   Map<String, dynamic> toJson() {
     return {
       'missaoId': missaoId,
-      if (status != null) 'status': status!.apiValue,
+      'status': status.apiValue,
       if (startedAt != null) 'startedAt': startedAt!.toUtc().toIso8601String(),
     };
   }

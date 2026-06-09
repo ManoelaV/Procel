@@ -95,9 +95,21 @@ class BackendGamificationService {
       throw Exception(_extractMessage(response.body));
     }
 
-    final body = response.body.isNotEmpty ? response.body : '{}';
-    final decoded = jsonDecode(body) as Map<String, dynamic>;
+    final decoded = _decodeResponseBody(response.body);
     return BackendGamificationSnapshot.fromJson(decoded);
+  }
+
+  static Map<String, dynamic> _decodeResponseBody(String body) {
+    if (body.trim().isEmpty) {
+      return {};
+    }
+
+    try {
+      final decoded = jsonDecode(body);
+      return decoded is Map<String, dynamic> ? decoded : {};
+    } catch (_) {
+      return {};
+    }
   }
 
   static String _extractMessage(String body) {

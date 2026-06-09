@@ -22,46 +22,42 @@ class FFUploadedFile {
   String toString() =>
       'FFUploadedFile(name: $name, bytes: ${bytes?.length ?? 0}, height: $height, width: $width, blurHash: $blurHash, originalFilename: $originalFilename,)';
 
-  String serialize() => jsonEncode(
-        {
-          'name': name,
-          'bytes': bytes,
-          'height': height,
-          'width': width,
-          'blurHash': blurHash,
-          'originalFilename': originalFilename,
-        },
-      );
+  String serialize() => jsonEncode({
+    'name': name,
+    'bytes': bytes,
+    'height': height,
+    'width': width,
+    'blurHash': blurHash,
+    'originalFilename': originalFilename,
+  });
 
   static FFUploadedFile deserialize(String val) {
-    final serializedData = jsonDecode(val) as Map<String, dynamic>;
-    final data = {
-      'name': serializedData['name'] ?? '',
-      'bytes': serializedData['bytes'] ?? Uint8List.fromList([]),
-      'height': serializedData['height'],
-      'width': serializedData['width'],
-      'blurHash': serializedData['blurHash'],
-      'originalFilename': serializedData['originalFilename'] ?? '',
-    };
-    return FFUploadedFile(
-      name: data['name'] as String,
-      bytes: Uint8List.fromList(data['bytes'].cast<int>().toList()),
-      height: data['height'] as double?,
-      width: data['width'] as double?,
-      blurHash: data['blurHash'] as String?,
-      originalFilename: data['originalFilename'] as String,
-    );
+    try {
+      final serializedData = jsonDecode(val) as Map<String, dynamic>;
+      final data = {
+        'name': serializedData['name'] ?? '',
+        'bytes': serializedData['bytes'] ?? Uint8List.fromList([]),
+        'height': serializedData['height'],
+        'width': serializedData['width'],
+        'blurHash': serializedData['blurHash'],
+        'originalFilename': serializedData['originalFilename'] ?? '',
+      };
+      return FFUploadedFile(
+        name: data['name'] as String,
+        bytes: Uint8List.fromList(data['bytes'].cast<int>().toList()),
+        height: data['height'] as double?,
+        width: data['width'] as double?,
+        blurHash: data['blurHash'] as String?,
+        originalFilename: data['originalFilename'] as String,
+      );
+    } catch (_) {
+      return const FFUploadedFile();
+    }
   }
 
   @override
-  int get hashCode => Object.hash(
-        name,
-        bytes,
-        height,
-        width,
-        blurHash,
-        originalFilename,
-      );
+  int get hashCode =>
+      Object.hash(name, bytes, height, width, blurHash, originalFilename);
 
   @override
   bool operator ==(other) =>

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart'
 import 'package:provider/provider.dart';
 
 import 'pages/backend_auth_screen.dart';
+import 'pages/upload_pdf_rooms/upload_pdf_rooms_widget.dart';
 import 'services/backend_session.dart';
 import 'services/gamification_state.dart';
 import 'components/proximas_missoes_widget.dart';
@@ -36,7 +37,11 @@ class EcoApp extends StatelessWidget {
             ),
           ),
           home: const BackendAuthScreen(),
-          routes: {'/shell': (context) => const ShellPage()},
+          routes: {
+            '/shell': (context) => const ShellPage(),
+            '/upload-pdf-rooms': (context) =>
+                const Scaffold(body: SafeArea(child: UploadPdfRoomsWidget())),
+          },
         ),
       ),
     );

@@ -16,7 +16,7 @@ final _handledMessageIds = <String?>{};
 
 class PushNotificationsHandler extends StatefulWidget {
   const PushNotificationsHandler({Key? key, required this.child})
-      : super(key: key);
+    : super(key: key);
 
   final Widget child;
 
@@ -99,19 +99,20 @@ class _PushNotificationsHandlerState extends State<PushNotificationsHandler> {
 }
 
 class ParameterData {
-  const ParameterData(
-      {this.requiredParams = const {}, this.allParams = const {}});
+  const ParameterData({
+    this.requiredParams = const {},
+    this.allParams = const {},
+  });
   final Map<String, String?> requiredParams;
   final Map<String, dynamic> allParams;
 
   Map<String, String> get pathParameters => Map.fromEntries(
-        requiredParams.entries
-            .where((e) => e.value != null)
-            .map((e) => MapEntry(e.key, e.value!)),
-      );
-  Map<String, dynamic> get extra => Map.fromEntries(
-        allParams.entries.where((e) => e.value != null),
-      );
+    requiredParams.entries
+        .where((e) => e.value != null)
+        .map((e) => MapEntry(e.key, e.value!)),
+  );
+  Map<String, dynamic> get extra =>
+      Map.fromEntries(allParams.entries.where((e) => e.value != null));
 
   static Future<ParameterData> Function(Map<String, dynamic>) none() =>
       (data) async => ParameterData();
@@ -119,31 +120,31 @@ class ParameterData {
 
 final parametersBuilderMap =
     <String, Future<ParameterData> Function(Map<String, dynamic>)>{
-  'Cadastro': ParameterData.none(),
-  'Home': ParameterData.none(),
-  'Tarefa': ParameterData.none(),
-  'Tarefa2': ParameterData.none(),
-  'Tarefa3': ParameterData.none(),
-  'FinalTarefa': ParameterData.none(),
-  'info_videos': ParameterData.none(),
-  'Metas': ParameterData.none(),
-  'EscalaDeMotivacao': ParameterData.none(),
-  'BPNSS': ParameterData.none(),
-  'Noticias': ParameterData.none(),
-  'Notificacoes': ParameterData.none(),
-  'info_diabetes3': ParameterData.none(),
-  'Sintomas_diabetes2': ParameterData.none(),
-  'Saibamaissobreoprojeto': ParameterData.none(),
-  'Redefinicao_senha': ParameterData.none(),
-  'configuracoes': ParameterData.none(),
-  'MudarSenha': ParameterData.none(),
-  'CadastroCopy': ParameterData.none(),
-  'Sintomas_diabetes2Copy': ParameterData.none(),
-  'TarefaCopy': ParameterData.none(),
-  'info_videosCopy': ParameterData.none(),
-  'Tarefa2Copy': ParameterData.none(),
-  'MetasCopy': ParameterData.none(),
-};
+      'Cadastro': ParameterData.none(),
+      'Home': ParameterData.none(),
+      'Tarefa': ParameterData.none(),
+      'Tarefa2': ParameterData.none(),
+      'Tarefa3': ParameterData.none(),
+      'FinalTarefa': ParameterData.none(),
+      'info_videos': ParameterData.none(),
+      'Metas': ParameterData.none(),
+      'EscalaDeMotivacao': ParameterData.none(),
+      'BPNSS': ParameterData.none(),
+      'Noticias': ParameterData.none(),
+      'Notificacoes': ParameterData.none(),
+      'info_diabetes3': ParameterData.none(),
+      'Sintomas_diabetes2': ParameterData.none(),
+      'Saibamaissobreoprojeto': ParameterData.none(),
+      'Redefinicao_senha': ParameterData.none(),
+      'configuracoes': ParameterData.none(),
+      'MudarSenha': ParameterData.none(),
+      'CadastroCopy': ParameterData.none(),
+      'Sintomas_diabetes2Copy': ParameterData.none(),
+      'TarefaCopy': ParameterData.none(),
+      'info_videosCopy': ParameterData.none(),
+      'Tarefa2Copy': ParameterData.none(),
+      'MetasCopy': ParameterData.none(),
+    };
 
 Map<String, dynamic> getInitialParameterData(Map<String, dynamic> data) {
   try {

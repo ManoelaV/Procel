@@ -67,9 +67,9 @@ flutter pub get
 
 ```bash
 # Terminal 1 - back-end
-cd backend-repo/Procel-Ingestion
-docker compose up -d
-.\mvnw.cmd spring-boot:run
+# Se você estiver na raiz do repositório, entre na pasta do back-end.
+# Se o terminal já estiver em backend-repo/Procel-Ingestion, pule esta linha.
+
 
 # Terminal 2 - front-end
 cd ..\..\
