@@ -53,14 +53,18 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
       return;
     }
 
-    setState(() => _status = 'Back-end não retornou salas. Tentando Cobalto...');
+    setState(
+      () => _status = 'Back-end não retornou salas. Tentando Cobalto...',
+    );
     final raw = await RoomsService.fetchRoomsFromCobaltoRaw();
     if (raw == null) {
       setState(() => _status = 'Falha ao obter salas.');
       return;
     }
 
-    setState(() => _status = 'Cobalto retornou dados; processamento necessário.');
+    setState(
+      () => _status = 'Cobalto retornou dados; processamento necessário.',
+    );
     // Tentar decodificar JSON se for JSON
     List<Room> cobaltoRooms = [];
     try {
@@ -68,8 +72,14 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
       if (decoded is List) {
         cobaltoRooms = decoded.map((e) => Room.fromJson(e)).toList();
       } else if (decoded is Map) {
-        if (decoded['rooms'] is List) cobaltoRooms = (decoded['rooms'] as List).map((e) => Room.fromJson(e)).toList();
-        else if (decoded['compartimentos'] is List) cobaltoRooms = (decoded['compartimentos'] as List).map((e) => Room.fromJson(e)).toList();
+        if (decoded['rooms'] is List)
+          cobaltoRooms = (decoded['rooms'] as List)
+              .map((e) => Room.fromJson(e))
+              .toList();
+        else if (decoded['compartimentos'] is List)
+          cobaltoRooms = (decoded['compartimentos'] as List)
+              .map((e) => Room.fromJson(e))
+              .toList();
       }
     } catch (_) {
       // HTML ou formato inesperado — parser específico necessário
@@ -99,7 +109,9 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
             final room = e.value;
             return ListTile(
               title: Text(entry.toString()),
-              subtitle: Text(room != null ? 'Sala: ${room.name}' : 'Sala não encontrada'),
+              subtitle: Text(
+                room != null ? 'Sala: ${room.name}' : 'Sala não encontrada',
+              ),
             );
           }).toList(),
         ),

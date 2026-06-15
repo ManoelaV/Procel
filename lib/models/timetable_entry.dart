@@ -14,12 +14,12 @@ class TimetableEntry {
   final String? endTime;
 
   Map<String, dynamic> toJson() => {
-        'turma': turma,
-        'disciplina': disciplina,
-        'dia': dia,
-        'startTime': startTime,
-        'endTime': endTime,
-      };
+    'turma': turma,
+    'disciplina': disciplina,
+    'dia': dia,
+    'startTime': startTime,
+    'endTime': endTime,
+  };
 
   @override
   String toString() =>

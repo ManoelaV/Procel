@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:pdf_text/pdf_text.dart';
+import 'package:flutter_pdf_text/flutter_pdf_text.dart';
 
 import '../models/timetable_entry.dart';
 import '../models/room_model.dart';
@@ -18,7 +18,10 @@ class PdfParserService {
   static List<TimetableEntry> parseTimetableFromText(String text) {
     final lines = text.split(RegExp(r'\r?\n'));
     final timeRangeRe = RegExp(r"(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})");
-    final dayRe = RegExp(r"(Segunda|Terca|Terça|Quarta|Quinta|Sexta|Sabado|Sábado|Segunda-feira|Terça-feira|Quarta-feira|Quinta-feira|Sexta-feira|Sábado)", caseSensitive: false);
+    final dayRe = RegExp(
+      r"(Segunda|Terca|Terça|Quarta|Quinta|Sexta|Sabado|Sábado|Segunda-feira|Terça-feira|Quarta-feira|Quinta-feira|Sexta-feira|Sábado)",
+      caseSensitive: false,
+    );
     final turmaRe = RegExp(r"[Tt]urma[:\s]*([A-Za-z0-9\-_/]+)");
 
     final entries = <TimetableEntry>[];
@@ -32,7 +35,9 @@ class PdfParserService {
 
         // tenta extrair dia na linha atual ou anterior
         String? dia;
-        final dayMatch = dayRe.firstMatch(line) ?? (i > 0 ? dayRe.firstMatch(lines[i - 1]) : null);
+        final dayMatch =
+            dayRe.firstMatch(line) ??
+            (i > 0 ? dayRe.firstMatch(lines[i - 1]) : null);
         if (dayMatch != null) dia = dayMatch.group(0);
 
         // tenta extrair turma da linha inteira do documento
@@ -44,17 +49,21 @@ class PdfParserService {
         String? disciplina;
         if (before.isNotEmpty) {
           final words = before.split(RegExp(r'\s+'));
-          final lastWords = words.length <= 4 ? words : words.sublist(words.length - 4);
+          final lastWords = words.length <= 4
+              ? words
+              : words.sublist(words.length - 4);
           disciplina = lastWords.join(' ');
         }
 
-        entries.add(TimetableEntry(
-          turma: turma,
-          disciplina: disciplina,
-          dia: dia,
-          startTime: start,
-          endTime: end,
-        ));
+        entries.add(
+          TimetableEntry(
+            turma: turma,
+            disciplina: disciplina,
+            dia: dia,
+            startTime: start,
+            endTime: end,
+          ),
+        );
       }
     }
 
@@ -63,13 +72,16 @@ class PdfParserService {
 
   /// Heurística de mapeamento: tenta casar `turma` ou `disciplina` com o nome da sala.
   static Map<TimetableEntry, Room?> mapEntriesToRooms(
-      List<TimetableEntry> entries, List<Room> rooms) {
+    List<TimetableEntry> entries,
+    List<Room> rooms,
+  ) {
     final map = <TimetableEntry, Room?>{};
     for (final e in entries) {
       Room? matched;
       final queryParts = <String>[];
       if (e.turma != null) queryParts.add(e.turma!.toLowerCase());
-      if (e.disciplina != null) queryParts.addAll(e.disciplina!.toLowerCase().split(RegExp(r'\s+')));
+      if (e.disciplina != null)
+        queryParts.addAll(e.disciplina!.toLowerCase().split(RegExp(r'\s+')));
 
       final score = <Room, int>{};
       for (final r in rooms) {
@@ -83,7 +95,9 @@ class PdfParserService {
       }
 
       if (score.isNotEmpty) {
-        final best = score.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+        final best = score.entries
+            .reduce((a, b) => a.value >= b.value ? a : b)
+            .key;
         matched = best;
       }
 
