@@ -450,19 +450,32 @@ class _ProfileBody extends StatelessWidget {
           title: gamification.levelLabel,
           avatar: '🌟',
         ),
-        SizedBox(height: 18),
-        _SectionTitle('📊 Estatísticas'),
-        SizedBox(height: 12),
+        const SizedBox(height: 18),
+        const _SectionTitle('📊 Estatísticas'),
+        const SizedBox(height: 12),
         _StatsGrid(
           daily: '${gamification.dailySavedKwh.toStringAsFixed(1)} kWh',
           total: '${gamification.co2AvoidedKg.toStringAsFixed(1)} kg',
           third: '${gamification.coins} moedas',
           streak: '${gamification.streakDays} 🔥',
         ),
-        SizedBox(height: 18),
-        _SectionTitle('🎖️ Badges recentes'),
-        SizedBox(height: 12),
-        _RecentBadgesRow(),
+        const SizedBox(height: 18),
+
+        // 👇 NOVO: Adicionar o upload de PDF aqui
+        const _SectionTitle('📂 Gerenciar Horários'),
+        const SizedBox(height: 12),
+        Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: UploadPdfRoomsWidget(),
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        const _SectionTitle('🎖️ Badges recentes'),
+        const SizedBox(height: 12),
+        const _RecentBadgesRow(),
       ],
     );
   }

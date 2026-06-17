@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-
-import '../../services/rooms_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/room_model.dart';
-import '../../services/pdf_parser_service.dart';
 import '../../models/timetable_entry.dart';
+import '../../services/pdf_parser_service.dart';
+
+const String API_BASE_URL = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'https://procel.servehttp.com',
+);
 
 class UploadPdfRoomsWidget extends StatefulWidget {
   const UploadPdfRoomsWidget({super.key});
@@ -19,83 +23,116 @@ class UploadPdfRoomsWidget extends StatefulWidget {
 class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
   String? _status;
   List<Room> _rooms = [];
+  Map<TimetableEntry, Room?>? _mappingResult;
 
   Future<void> _pickAndProcessPdf() async {
-    setState(() => _status = 'Selecionando arquivo...');
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-    if (result == null) {
-      setState(() => _status = 'Seleção cancelada.');
-      return;
-    }
-
-    final file = File(result.files.single.path!);
-    setState(() => _status = 'Extraindo texto do PDF...');
-    final text = await PdfParserService.extractTextFromPdf(file);
-    setState(() => _status = 'Parseando horários do PDF...');
-    final entries = PdfParserService.parseTimetableFromText(text);
-
-    setState(() => _status = 'Buscando salas no back-end...');
-    final backendRooms = await RoomsService.fetchRoomsFromBackend();
-    if (backendRooms.isNotEmpty) {
-      setState(() {
-        _rooms = backendRooms;
-        _status = 'Salas carregadas do back-end: ${_rooms.length}';
-      });
-
-      final mapping = PdfParserService.mapEntriesToRooms(entries, _rooms);
-      setState(() {
-        _status = 'Mapeamento concluído. ${mapping.length} entradas';
-      });
-      _showMappingResults(mapping);
-      return;
-    }
-
-    setState(
-      () => _status = 'Back-end não retornou salas. Tentando Cobalto...',
-    );
-    final raw = await RoomsService.fetchRoomsFromCobaltoRaw();
-    if (raw == null) {
-      setState(() => _status = 'Falha ao obter salas.');
-      return;
-    }
-
-    setState(
-      () => _status = 'Cobalto retornou dados; processamento necessário.',
-    );
-    // Tentar decodificar JSON se for JSON
-    List<Room> cobaltoRooms = [];
     try {
-      final decoded = json.decode(raw);
-      if (decoded is List) {
-        cobaltoRooms = decoded.map((e) => Room.fromJson(e)).toList();
-      } else if (decoded is Map) {
-        if (decoded['rooms'] is List)
-          cobaltoRooms = (decoded['rooms'] as List)
-              .map((e) => Room.fromJson(e))
-              .toList();
-        else if (decoded['compartimentos'] is List)
-          cobaltoRooms = (decoded['compartimentos'] as List)
-              .map((e) => Room.fromJson(e))
-              .toList();
-      }
-    } catch (_) {
-      // HTML ou formato inesperado — parser específico necessário
-    }
-
-    if (cobaltoRooms.isNotEmpty) {
       setState(() {
-        _rooms = cobaltoRooms;
-        _status = 'Salas carregadas do Cobalto: ${_rooms.length}';
+        _status = 'Selecionando arquivo...';
+        _rooms = [];
+        _mappingResult = null;
       });
-      final mapping = PdfParserService.mapEntriesToRooms(entries, _rooms);
+
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+      if (result == null) {
+        setState(() => _status = 'Seleção cancelada.');
+        return;
+      }
+
+      final fileBytes = result.files.single.bytes;
+      if (fileBytes == null) {
+        setState(() => _status = 'Erro: não foi possível ler o arquivo.');
+        return;
+      }
+
+      setState(() => _status = 'Extraindo texto do PDF...');
+      final text = await PdfParserService.extractTextFromBytes(fileBytes);
+
+      setState(() => _status = 'Parseando horários do PDF...');
+      final entries = PdfParserService.parseTimetableFromText(text);
+
+      if (entries.isEmpty) {
+        setState(() => _status = 'Nenhuma disciplina encontrada no PDF.');
+        return;
+      }
+
+      setState(() => _status = 'Enviando dados para o servidor...');
+      final mapping = await _fetchRoomsForSchedule(entries);
+
+      setState(() {
+        _status = 'Mapeamento concluído com sucesso!';
+        _mappingResult = mapping;
+        _rooms = mapping.values.whereType<Room>().toList();
+      });
       _showMappingResults(mapping);
-      return;
+    } catch (e) {
+      setState(() => _status = 'Erro: $e');
+      print('❌ Erro: $e');
+    }
+  }
+
+  Future<Map<TimetableEntry, Room?>> _fetchRoomsForSchedule(
+    List<TimetableEntry> entries,
+  ) async {
+    final url = Uri.parse('$API_BASE_URL/api/schedule/rooms');
+    final body = jsonEncode({
+      'entries': entries.map((e) => e.toJson()).toList(),
+    });
+
+    // 🔹 Obtém o token diretamente do SharedPreferences
+    String? token;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final possibleKeys = [
+        'token',
+        'auth_token',
+        'access_token',
+        'jwt_token',
+        'api_token',
+      ];
+      for (var key in possibleKeys) {
+        token = prefs.getString(key);
+        if (token != null && token.isNotEmpty) break;
+      }
+    } catch (e) {
+      print('Erro ao obter token: $e');
     }
 
-    setState(() => _status = 'Não foi possível obter salas de nenhuma fonte.');
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+
+    final response = await http.post(url, headers: headers, body: body);
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Falha ao buscar salas: ${response.statusCode} - ${response.body}',
+      );
+    }
+
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    final List<dynamic> roomsData = data['rooms'] ?? [];
+    if (roomsData.length != entries.length) {
+      throw Exception(
+        'Número de salas retornado (${roomsData.length}) não coincide com o número de entradas (${entries.length})',
+      );
+    }
+
+    Map<TimetableEntry, Room?> result = {};
+    for (int i = 0; i < entries.length; i++) {
+      final entry = entries[i];
+      final roomJson = roomsData[i];
+      Room? room;
+      if (roomJson != null) {
+        room = Room.fromJson(roomJson);
+      }
+      result[entry] = room;
+    }
+    return result;
   }
 
   void _showMappingResults(Map<TimetableEntry, Room?> mapping) {

@@ -1,108 +1,92 @@
-import 'dart:io';
-
-import 'package:flutter_pdf_text/flutter_pdf_text.dart';
-
+import 'dart:typed_data';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../models/timetable_entry.dart';
-import '../models/room_model.dart';
 
 class PdfParserService {
-  /// Extrai texto bruto do PDF usando `pdf_text`.
-  static Future<String> extractTextFromPdf(File file) async {
-    final doc = await PDFDoc.fromFile(file);
-    final text = await doc.text;
-    return text;
+  static Future<String> extractTextFromBytes(Uint8List bytes) async {
+    try {
+      final document = PdfDocument(inputBytes: bytes);
+      if (document.pages.count == 0) {
+        document.dispose();
+        return '';
+      }
+      final extractor = PdfTextExtractor(document);
+      // Extrai texto de todas as páginas de uma vez
+      final text = extractor.extractText();
+      document.dispose();
+      return text ?? '';
+    } catch (e) {
+      // Se falhar, retorna vazio ou lança exceção
+      print('Erro ao extrair texto: $e');
+      return '';
+    }
   }
 
-  /// Parse simples do texto para extrair entradas de horário.
-  /// Heurística: encontra ranges de horário e tenta capturar disciplina/turma na mesma linha.
+  // Parser
   static List<TimetableEntry> parseTimetableFromText(String text) {
+    final entries = <TimetableEntry>[];
     final lines = text.split(RegExp(r'\r?\n'));
-    final timeRangeRe = RegExp(r"(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})");
+
+    final timeRangeRe = RegExp(r'(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})');
     final dayRe = RegExp(
-      r"(Segunda|Terca|Terça|Quarta|Quinta|Sexta|Sabado|Sábado|Segunda-feira|Terça-feira|Quarta-feira|Quinta-feira|Sexta-feira|Sábado)",
+      r'(Segunda|Terça|Terca|Quarta|Quinta|Sexta|Sábado|Sabado)',
       caseSensitive: false,
     );
-    final turmaRe = RegExp(r"[Tt]urma[:\s]*([A-Za-z0-9\-_/]+)");
+    final subjectRe = RegExp(r'(\d{8})\s*-\s*([A-Z]\d?)\s*-\s*(.+)');
 
-    final entries = <TimetableEntry>[];
+    String? currentDay;
 
     for (var i = 0; i < lines.length; i++) {
-      final line = lines[i];
+      final line = lines[i].trim();
+      if (line.isEmpty) continue;
+
+      final dayMatch = dayRe.firstMatch(line);
+      if (dayMatch != null) {
+        currentDay = dayMatch.group(0);
+        continue;
+      }
+
       final timeMatch = timeRangeRe.firstMatch(line);
-      if (timeMatch != null) {
-        final start = timeMatch.group(1);
-        final end = timeMatch.group(2);
+      if (timeMatch != null && currentDay != null) {
+        final start = timeMatch.group(1)!;
+        final end = timeMatch.group(2)!;
 
-        // tenta extrair dia na linha atual ou anterior
-        String? dia;
-        final dayMatch =
-            dayRe.firstMatch(line) ??
-            (i > 0 ? dayRe.firstMatch(lines[i - 1]) : null);
-        if (dayMatch != null) dia = dayMatch.group(0);
-
-        // tenta extrair turma da linha inteira do documento
-        final turmaMatch = turmaRe.firstMatch(text);
-        final turma = turmaMatch != null ? turmaMatch.group(1) : null;
-
-        // disciplina: parte do texto antes do horário na mesma linha (últimas 4 palavras)
-        final before = line.substring(0, timeMatch.start).trim();
-        String? disciplina;
-        if (before.isNotEmpty) {
-          final words = before.split(RegExp(r'\s+'));
-          final lastWords = words.length <= 4
-              ? words
-              : words.sublist(words.length - 4);
-          disciplina = lastWords.join(' ');
+        String? subjectLine;
+        final afterTime = line.substring(timeMatch.end).trim();
+        if (afterTime.isNotEmpty) {
+          subjectLine = afterTime;
+        } else {
+          for (var j = 1; j <= 2 && i + j < lines.length; j++) {
+            final nextLine = lines[i + j].trim();
+            if (nextLine.isNotEmpty) {
+              subjectLine = nextLine;
+              break;
+            }
+          }
         }
 
-        entries.add(
-          TimetableEntry(
-            turma: turma,
-            disciplina: disciplina,
-            dia: dia,
-            startTime: start,
-            endTime: end,
-          ),
-        );
+        if (subjectLine != null) {
+          final subjectMatch = subjectRe.firstMatch(subjectLine);
+          if (subjectMatch != null) {
+            final code = subjectMatch.group(1)!;
+            final turma = subjectMatch.group(2)!;
+            final name = subjectMatch.group(3)!.trim();
+
+            entries.add(
+              TimetableEntry(
+                turma: turma,
+                disciplina: name,
+                dia: currentDay,
+                startTime: start,
+                endTime: end,
+                // codigo: code, // descomente se necessário
+              ),
+            );
+          }
+        }
       }
     }
 
     return entries;
-  }
-
-  /// Heurística de mapeamento: tenta casar `turma` ou `disciplina` com o nome da sala.
-  static Map<TimetableEntry, Room?> mapEntriesToRooms(
-    List<TimetableEntry> entries,
-    List<Room> rooms,
-  ) {
-    final map = <TimetableEntry, Room?>{};
-    for (final e in entries) {
-      Room? matched;
-      final queryParts = <String>[];
-      if (e.turma != null) queryParts.add(e.turma!.toLowerCase());
-      if (e.disciplina != null)
-        queryParts.addAll(e.disciplina!.toLowerCase().split(RegExp(r'\s+')));
-
-      final score = <Room, int>{};
-      for (final r in rooms) {
-        var s = 0;
-        final name = (r.name + ' ' + (r.building ?? '')).toLowerCase();
-        for (final qp in queryParts) {
-          if (qp.isEmpty) continue;
-          if (name.contains(qp)) s += 1;
-        }
-        if (s > 0) score[r] = s;
-      }
-
-      if (score.isNotEmpty) {
-        final best = score.entries
-            .reduce((a, b) => a.value >= b.value ? a : b)
-            .key;
-        matched = best;
-      }
-
-      map[e] = matched;
-    }
-    return map;
   }
 }
