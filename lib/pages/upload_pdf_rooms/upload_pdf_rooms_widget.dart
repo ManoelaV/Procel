@@ -1,17 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../config/api_config.dart';
 import '../../models/room_model.dart';
 import '../../models/timetable_entry.dart';
+import '../../services/backend_session.dart';
 import '../../services/pdf_parser_service.dart';
-
-const String API_BASE_URL = String.fromEnvironment(
-  'API_BASE_URL',
-  defaultValue: 'https://procel.servehttp.com',
-);
 
 class UploadPdfRoomsWidget extends StatefulWidget {
   const UploadPdfRoomsWidget({super.key});
@@ -23,14 +19,12 @@ class UploadPdfRoomsWidget extends StatefulWidget {
 class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
   String? _status;
   List<Room> _rooms = [];
-  Map<TimetableEntry, Room?>? _mappingResult;
 
   Future<void> _pickAndProcessPdf() async {
     try {
       setState(() {
         _status = 'Selecionando arquivo...';
         _rooms = [];
-        _mappingResult = null;
       });
 
       final result = await FilePicker.platform.pickFiles(
@@ -64,29 +58,34 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
 
       setState(() {
         _status = 'Mapeamento concluído com sucesso!';
-        _mappingResult = mapping;
         _rooms = mapping.values.whereType<Room>().toList();
       });
       _showMappingResults(mapping);
     } catch (e) {
-      setState(() => _status = 'Erro: $e');
+      setState(() => _status = 'Erro: ${_friendlyError(e)}');
       print('❌ Erro: $e');
     }
   }
 
+  String _friendlyError(Object error) =>
+      error.toString().replaceFirst('Exception: ', '');
+
   Future<Map<TimetableEntry, Room?>> _fetchRoomsForSchedule(
     List<TimetableEntry> entries,
   ) async {
-    final url = Uri.parse('$API_BASE_URL/api/schedule/rooms');
+    final url = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiConfig.API_PREFIX}/schedule/rooms',
+    );
     final body = jsonEncode({
       'entries': entries.map((e) => e.toJson()).toList(),
     });
 
-    // 🔹 Obtém o token diretamente do SharedPreferences
-    String? token;
+    // Usa a mesma sessao salva pelo login do back-end.
+    String? token = await BackendSession.restoreToken();
     try {
       final prefs = await SharedPreferences.getInstance();
       final possibleKeys = [
+        'procel_backend_access_token',
         'token',
         'auth_token',
         'access_token',
@@ -94,8 +93,8 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
         'api_token',
       ];
       for (var key in possibleKeys) {
-        token = prefs.getString(key);
         if (token != null && token.isNotEmpty) break;
+        token = prefs.getString(key);
       }
     } catch (e) {
       print('Erro ao obter token: $e');
@@ -109,6 +108,12 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
     final response = await http.post(url, headers: headers, body: body);
 
     if (response.statusCode != 200) {
+      if (response.statusCode == 401) {
+        throw Exception(
+          'Sessao expirada ou login do back-end ausente. Faca login novamente no app e tente enviar o PDF.',
+        );
+      }
+
       throw Exception(
         'Falha ao buscar salas: ${response.statusCode} - ${response.body}',
       );
