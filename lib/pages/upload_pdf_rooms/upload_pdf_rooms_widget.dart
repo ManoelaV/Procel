@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/api_config.dart';
 import '../../models/room_model.dart';
 import '../../models/timetable_entry.dart';
+import '../../pages/backend_auth_screen.dart';
 import '../../services/backend_session.dart';
 import '../../services/pdf_parser_service.dart';
 
@@ -19,12 +20,20 @@ class UploadPdfRoomsWidget extends StatefulWidget {
 class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
   String? _status;
   List<Room> _rooms = [];
+  bool _needsBackendLogin = false;
+  bool _isProcessing = false;
 
   Future<void> _pickAndProcessPdf() async {
+    if (_isProcessing || _needsBackendLogin) {
+      return;
+    }
+
     try {
       setState(() {
+        _isProcessing = true;
         _status = 'Selecionando arquivo...';
         _rooms = [];
+        _needsBackendLogin = false;
       });
 
       final result = await FilePicker.platform.pickFiles(
@@ -62,8 +71,18 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
       });
       _showMappingResults(mapping);
     } catch (e) {
-      setState(() => _status = 'Erro: ${_friendlyError(e)}');
+      final needsBackendLogin = e is _BackendLoginRequiredException;
+      setState(() {
+        _needsBackendLogin = needsBackendLogin;
+        _status = 'Erro: ${_friendlyError(e)}';
+      });
       print('❌ Erro: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     }
   }
 
@@ -103,14 +122,25 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
     final headers = <String, String>{'Content-Type': 'application/json'};
     if (token != null && token.isNotEmpty) {
       headers['Authorization'] = 'Bearer $token';
+    } else {
+      throw const _BackendLoginRequiredException(
+        'Login do back-end ausente. Entre novamente no app e tente enviar o PDF.',
+      );
     }
 
     final response = await http.post(url, headers: headers, body: body);
 
     if (response.statusCode != 200) {
       if (response.statusCode == 401) {
-        throw Exception(
-          'Sessao expirada ou login do back-end ausente. Faca login novamente no app e tente enviar o PDF.',
+        if (await _hasValidBackendSession(headers)) {
+          throw const _ScheduleRoomsEndpointException(
+            'O servidor aceitou seu login, mas nao disponibilizou o endpoint /api/schedule/rooms. Verifique ou publique esse endpoint no back-end.',
+          );
+        }
+
+        await BackendSession.clear();
+        throw const _BackendLoginRequiredException(
+          'Sessao expirada. Entre novamente no app e tente enviar o PDF.',
         );
       }
 
@@ -140,6 +170,20 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
     return result;
   }
 
+  Future<bool> _hasValidBackendSession(Map<String, String> headers) async {
+    try {
+      final uri = Uri.parse(
+        '${ApiConfig.baseUrl}${ApiConfig.API_PREFIX}/missoes',
+      );
+      final response = await http
+          .get(uri, headers: headers)
+          .timeout(Duration(seconds: ApiConfig.TIMEOUT_SECONDS));
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (_) {
+      return false;
+    }
+  }
+
   void _showMappingResults(Map<TimetableEntry, Room?> mapping) {
     showModalBottomSheet(
       context: context,
@@ -161,18 +205,44 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
     );
   }
 
+  Future<void> _goToBackendLogin() async {
+    await BackendSession.clear();
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const BackendAuthScreen()),
+      (_) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ElevatedButton.icon(
-          onPressed: _pickAndProcessPdf,
-          icon: const Icon(Icons.upload_file),
+          onPressed: _isProcessing || _needsBackendLogin
+              ? null
+              : _pickAndProcessPdf,
+          icon: _isProcessing
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.upload_file),
           label: const Text('Enviar PDF de horários'),
         ),
         const SizedBox(height: 12),
         if (_status != null) Text(_status!),
+        if (_needsBackendLogin) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _goToBackendLogin,
+            icon: const Icon(Icons.login),
+            label: const Text('Entrar novamente'),
+          ),
+        ],
         const SizedBox(height: 12),
         if (_rooms.isNotEmpty)
           ..._rooms.map(
@@ -184,4 +254,22 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
       ],
     );
   }
+}
+
+class _BackendLoginRequiredException implements Exception {
+  const _BackendLoginRequiredException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+class _ScheduleRoomsEndpointException implements Exception {
+  const _ScheduleRoomsEndpointException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }

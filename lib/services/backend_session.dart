@@ -23,8 +23,19 @@ class BackendLoginResult {
 
   factory BackendLoginResult.fromJson(Map<String, dynamic> json) {
     return BackendLoginResult(
-      accessToken: json['accessToken'] as String? ?? '',
-      tokenType: json['tokenType'] as String? ?? 'Bearer',
+      accessToken:
+          json['accessToken'] as String? ??
+          json['access_token'] as String? ??
+          json['token'] as String? ??
+          json['authToken'] as String? ??
+          json['auth_token'] as String? ??
+          json['jwtToken'] as String? ??
+          json['jwt_token'] as String? ??
+          '',
+      tokenType:
+          json['tokenType'] as String? ??
+          json['token_type'] as String? ??
+          'Bearer',
       userId: json['userId'] as String? ?? '',
       email: json['email'] as String? ?? '',
       roles: (json['roles'] as List<dynamic>? ?? const [])
@@ -74,6 +85,8 @@ class BackendSession {
     required String email,
     required String password,
   }) async {
+    await clear();
+
     final response = await http.post(
       ApiConfig.loginUri,
       headers: ApiConfig.DEFAULT_HEADERS,
@@ -89,13 +102,49 @@ class BackendSession {
     }
 
     final result = BackendLoginResult.fromJson(decoded);
-    if (result.accessToken.isNotEmpty) {
-      await saveToken(result.accessToken);
+    if (result.accessToken.isEmpty) {
+      throw Exception('Login aceito, mas o back-end nao retornou accessToken.');
     }
+    await saveToken(result.accessToken);
+
     if (result.userId.isNotEmpty) {
       await saveUserId(result.userId);
     }
     return result;
+  }
+
+  static Future<BackendLoginResult> registerAndLogin({
+    required String nome,
+    required String email,
+    required String userId,
+    required String password,
+    String? telefone,
+    String? matricula,
+  }) async {
+    await clear();
+
+    final response = await http.post(
+      ApiConfig.registerUri,
+      headers: ApiConfig.DEFAULT_HEADERS,
+      body: jsonEncode({
+        'nome': nome,
+        'email': email,
+        'userId': userId,
+        'password': password,
+        'telefone': telefone,
+        'matricula': matricula,
+      }),
+    );
+
+    final decoded = _decodeResponseBody(response.body);
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        decoded['message']?.toString() ?? 'Falha ao cadastrar usuario.',
+      );
+    }
+
+    return login(email: email, password: password);
   }
 
   static Map<String, dynamic> _decodeResponseBody(String body) {
