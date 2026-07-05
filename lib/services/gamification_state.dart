@@ -7,6 +7,7 @@ import '/models/missao_model.dart';
 import 'backend_session.dart';
 import 'backend_gamification_service.dart';
 import 'missao_service.dart';
+import '../utils/friendly_message.dart';
 
 class GamificationMission {
   GamificationMission({
@@ -239,9 +240,9 @@ class GamificationState extends ChangeNotifier {
         _applySnapshot(fallbackSnapshot);
         _errorMessage = null;
       } catch (fallbackError) {
-        _errorMessage = fallbackError.toString().replaceFirst(
-          'Exception: ',
-          '',
+        _errorMessage = userFriendlyErrorMessage(
+          fallbackError,
+          fallbackMessage: 'Não foi possível atualizar seu progresso agora.',
         );
       }
     } finally {
@@ -270,7 +271,10 @@ class GamificationState extends ChangeNotifier {
       );
       _applySnapshot(snapshot);
     } catch (error) {
-      _errorMessage = error.toString().replaceFirst('Exception: ', '');
+      _errorMessage = userFriendlyErrorMessage(
+        error,
+        fallbackMessage: 'Não foi possível atualizar seu progresso agora.',
+      );
     } finally {
       _loading = false;
       notifyListeners();
@@ -331,7 +335,7 @@ class GamificationState extends ChangeNotifier {
   Future<BackendGamificationSnapshot> _buildFallbackSnapshot() async {
     final userId = await BackendSession.restoreUserId();
     if (userId == null || userId.isEmpty) {
-      throw Exception('Nao foi possivel identificar o usuario logado.');
+      throw Exception('Não foi possível identificar o usuário logado.');
     }
 
     final atividades = await MissaoService().listarAtividadesDaPessoa(userId);

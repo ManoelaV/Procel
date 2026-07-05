@@ -114,14 +114,15 @@ class BackendGamificationService {
 
   static String _extractMessage(String body) {
     if (body.isEmpty) {
-      return 'Falha ao carregar gamificação.';
+      return 'Não foi possível carregar seus dados de progresso.';
     }
 
     try {
       final decoded = jsonDecode(body) as Map<String, dynamic>;
-      return decoded['message']?.toString() ?? 'Falha ao carregar gamificação.';
+      return decoded['message']?.toString() ??
+          'Não foi possível carregar seus dados de progresso.';
     } catch (_) {
-      return 'Falha ao carregar gamificação.';
+      return 'Não foi possível carregar seus dados de progresso.';
     }
   }
 }

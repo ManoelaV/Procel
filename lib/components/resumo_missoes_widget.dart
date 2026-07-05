@@ -82,7 +82,7 @@ class ResumoMissoesWidget extends ConsumerWidget {
           ),
           error: (error, _) => Padding(
             padding: const EdgeInsets.all(16),
-            child: Text('Erro: $error'),
+            child: Text('Não foi possível carregar seu resumo de atividades.'),
           ),
         );
       },

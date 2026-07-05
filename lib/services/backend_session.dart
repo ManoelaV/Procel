@@ -50,6 +50,8 @@ class BackendSession {
 
   static const _tokenKey = 'procel_backend_access_token';
   static const _userIdKey = 'backend_user_id';
+  static const _emailKey = 'backend_email';
+  static const _displayNameKey = 'backend_display_name';
 
   static Future<String?> restoreToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -69,6 +71,16 @@ class BackendSession {
     await prefs.setString(_userIdKey, userId);
   }
 
+  static Future<void> saveEmail(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_emailKey, email);
+  }
+
+  static Future<void> saveDisplayName(String displayName) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_displayNameKey, displayName);
+  }
+
   static Future<String?> restoreUserId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_userIdKey);
@@ -78,6 +90,8 @@ class BackendSession {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     await prefs.remove(_userIdKey);
+    await prefs.remove(_emailKey);
+    await prefs.remove(_displayNameKey);
     ApiManager.clearAccessToken();
   }
 
@@ -103,12 +117,16 @@ class BackendSession {
 
     final result = BackendLoginResult.fromJson(decoded);
     if (result.accessToken.isEmpty) {
-      throw Exception('Login aceito, mas o back-end nao retornou accessToken.');
+      throw Exception('Login aceito, mas o back-end não retornou um token.');
     }
     await saveToken(result.accessToken);
 
     if (result.userId.isNotEmpty) {
       await saveUserId(result.userId);
+    }
+    if (result.email.isNotEmpty) {
+      await saveEmail(result.email);
+      await saveDisplayName(result.email.split('@').first);
     }
     return result;
   }

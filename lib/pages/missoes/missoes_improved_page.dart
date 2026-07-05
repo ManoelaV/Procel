@@ -4,6 +4,7 @@ import '/models/missao_model.dart';
 import '/providers/missao_provider.dart';
 import '/providers/auth_provider.dart';
 import '/services/gamification_state.dart';
+import '../../utils/friendly_message.dart';
 
 /// Página melhorada de missões com tabs e gerenciamento completo
 class MissoesImprovedPage extends ConsumerStatefulWidget {
@@ -54,7 +55,9 @@ class _MissoesImprovedPageState extends ConsumerState<MissoesImprovedPage>
       body: authDataAsync.when(
         data: (authData) {
           if (authData == null) {
-            return const Center(child: Text('Você não está autenticado'));
+            return const Center(
+              child: Text('Sua sessão não está ativa. Entre novamente.'),
+            );
           }
 
           return TabBarView(
@@ -87,8 +90,15 @@ class _MissoesImprovedPageState extends ConsumerState<MissoesImprovedPage>
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) =>
-            Center(child: Text('Erro ao carregar: $error')),
+        error: (error, stack) => Center(
+          child: Text(
+            userFriendlyErrorMessage(
+              error,
+              fallbackMessage: 'Não foi possível carregar suas atividades.',
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
       ),
     );
   }
@@ -126,8 +136,17 @@ class _MissoesTab extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Nenhuma missão ${status.label.toLowerCase()}',
+                      'Nenhuma atividade ${status.label.toLowerCase()}',
                       style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        'Quando algo aparecer aqui, você pode iniciar, acompanhar ou concluir a atividade nesta tela.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     ),
                   ],
                 ),
@@ -154,8 +173,15 @@ class _MissoesTab extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) =>
-              Center(child: Text('Erro ao carregar: $error')),
+          error: (error, stack) => Center(
+            child: Text(
+              userFriendlyErrorMessage(
+                error,
+                fallbackMessage: 'Não foi possível carregar suas atividades.',
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
         );
   }
 
@@ -225,8 +251,17 @@ class _CatalogoDeMissoesTab extends ConsumerWidget {
                   const Icon(Icons.done_all, size: 64, color: Colors.green),
                   const SizedBox(height: 16),
                   Text(
-                    'Você tem todas as missões!',
+                    'Não há missões disponíveis agora.',
                     style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'Volte mais tarde ou confira se alguma atividade nova foi publicada.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ),
                 ],
               ),
@@ -251,16 +286,32 @@ class _CatalogoDeMissoesTab extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Erro: $error')),
+        error: (error, stack) => Center(
+          child: Text(
+            userFriendlyErrorMessage(
+              error,
+              fallbackMessage: 'Não foi possível carregar o catálogo agora.',
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Erro ao carregar: $error')),
+      error: (error, stack) => Center(
+        child: Text(
+          userFriendlyErrorMessage(
+            error,
+            fallbackMessage: 'Não foi possível carregar o catálogo agora.',
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
     );
   }
 }
 
 /// Card para uma missão em andamento/pendente
-class _MissaoCard extends ConsumerWidget {
+class _MissaoCard extends ConsumerStatefulWidget {
   final PessoaMissao atividade;
   final String pessoaId;
   final GamificationState? gamificationState;
@@ -274,7 +325,16 @@ class _MissaoCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MissaoCard> createState() => _MissaoCardState();
+}
+
+class _MissaoCardState extends ConsumerState<_MissaoCard> {
+  bool _isLoadingAction = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final atividade = widget.atividade;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -338,14 +398,23 @@ class _MissaoCard extends ConsumerWidget {
                   'Atribuída em ${_formatData(atividade.assignedAt)}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
-                if (atividade.isPending)
+                if (_isLoadingAction)
+                  const SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: Padding(
+                      padding: EdgeInsets.all(8),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                else if (atividade.isPending)
                   ElevatedButton(
-                    onPressed: () => _iniciarMissao(context, ref),
+                    onPressed: () => _iniciarMissao(context),
                     child: const Text('Iniciar'),
                   )
                 else if (atividade.isInProgress)
                   ElevatedButton(
-                    onPressed: () => _concluirMissao(context, ref),
+                    onPressed: () => _concluirMissao(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                     ),
@@ -364,44 +433,86 @@ class _MissaoCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _iniciarMissao(BuildContext context, WidgetRef ref) async {
+  Future<void> _iniciarMissao(BuildContext context) async {
+    if (_isLoadingAction) return;
+
+    setState(() {
+      _isLoadingAction = true;
+    });
+
     try {
       final notifier = ref.read(missaoNotifierProvider.notifier);
-      await notifier.iniciarMissao(pessoaId, atividade.id);
-      onAtualizar();
+      await notifier.iniciarMissao(widget.pessoaId, widget.atividade.id);
+      widget.onAtualizar();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Missão iniciada! Boa sorte!')),
+          const SnackBar(content: Text('Atividade iniciada com sucesso.')),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              userFriendlyErrorMessage(
+                e,
+                fallbackMessage: 'Não foi possível iniciar esta atividade.',
+              ),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingAction = false;
+        });
       }
     }
   }
 
-  Future<void> _concluirMissao(BuildContext context, WidgetRef ref) async {
+  Future<void> _concluirMissao(BuildContext context) async {
+    if (_isLoadingAction) return;
+
+    setState(() {
+      _isLoadingAction = true;
+    });
+
     try {
       final notifier = ref.read(missaoNotifierProvider.notifier);
-      final concluida = await notifier.concluirMissao(pessoaId, atividade.id);
-      gamificationState?.applyMissionCompletion(concluida);
-      onAtualizar();
+      final concluida = await notifier.concluirMissao(
+        widget.pessoaId,
+        widget.atividade.id,
+      );
+      widget.gamificationState?.applyMissionCompletion(concluida);
+      await widget.gamificationState?.loadFromBackend();
+      widget.onAtualizar();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🎉 Parabéns! Missão concluída com sucesso!'),
+            content: Text('Atividade concluída com sucesso.'),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              userFriendlyErrorMessage(
+                e,
+                fallbackMessage: 'Não foi possível concluir esta atividade.',
+              ),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingAction = false;
+        });
       }
     }
   }
@@ -425,7 +536,7 @@ class _MissaoCard extends ConsumerWidget {
 }
 
 /// Card para uma missão disponível para atribuição
-class _MissaoDisponibleCard extends ConsumerWidget {
+class _MissaoDisponibleCard extends ConsumerStatefulWidget {
   final Missao missao;
   final String pessoaId;
   final VoidCallback onAtribuir;
@@ -437,7 +548,15 @@ class _MissaoDisponibleCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MissaoDisponibleCard> createState() =>
+      _MissaoDisponibleCardState();
+}
+
+class _MissaoDisponibleCardState extends ConsumerState<_MissaoDisponibleCard> {
+  bool _isLoadingAction = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -446,14 +565,14 @@ class _MissaoDisponibleCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              missao.titulo,
+              widget.missao.titulo,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            if (missao.descricao.isNotEmpty)
+            if (widget.missao.descricao.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  missao.descricao,
+                  widget.missao.descricao,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall,
@@ -464,12 +583,20 @@ class _MissaoDisponibleCard extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Criada em ${_formatData(missao.createdAt)}',
+                  'Criada em ${_formatData(widget.missao.createdAt)}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 ElevatedButton.icon(
-                  onPressed: () => _atribuirMissao(context, ref),
-                  icon: const Icon(Icons.add),
+                  onPressed: _isLoadingAction
+                      ? null
+                      : () => _atribuirMissao(context),
+                  icon: _isLoadingAction
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.add),
                   label: const Text('Atribuir'),
                 ),
               ],
@@ -480,24 +607,43 @@ class _MissaoDisponibleCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _atribuirMissao(BuildContext context, WidgetRef ref) async {
+  Future<void> _atribuirMissao(BuildContext context) async {
+    if (_isLoadingAction) return;
+
+    setState(() {
+      _isLoadingAction = true;
+    });
+
     try {
       final notifier = ref.read(missaoNotifierProvider.notifier);
-      await notifier.atribuirMissao(pessoaId, missao.id);
-      onAtribuir();
+      await notifier.atribuirMissao(widget.pessoaId, widget.missao.id);
+      widget.onAtribuir();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✓ Missão atribuída!'),
+            content: Text('Atividade atribuída com sucesso.'),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              userFriendlyErrorMessage(
+                e,
+                fallbackMessage: 'Não foi possível atribuir esta atividade.',
+              ),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingAction = false;
+        });
       }
     }
   }

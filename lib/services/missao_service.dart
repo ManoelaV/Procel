@@ -53,12 +53,12 @@ class MissaoService {
         }
         return <Missao>[];
       } else {
-        throw Exception('Erro ao listar missões: ${response.statusCode}');
+        throw Exception('Não foi possível carregar as missões.');
       }
     } on DioException catch (e) {
-      throw Exception('Erro de conexão ao listar missões: ${e.message}');
+      throw Exception('Não foi possível carregar as missões.');
     } catch (e) {
-      throw Exception('Erro ao listar missões: $e');
+      throw Exception('Não foi possível carregar as missões.');
     }
   }
 
@@ -74,12 +74,12 @@ class MissaoService {
       if (response.statusCode == 200) {
         return Missao.fromJson(response.data as Map<String, dynamic>);
       } else {
-        throw Exception('Erro ao obter missão: ${response.statusCode}');
+        throw Exception('Não foi possível abrir a missão.');
       }
     } on DioException catch (e) {
-      throw Exception('Erro de conexão ao obter missão: ${e.message}');
+      throw Exception('Não foi possível abrir a missão.');
     } catch (e) {
-      throw Exception('Erro ao obter missão: $e');
+      throw Exception('Não foi possível abrir a missão.');
     }
   }
 
@@ -111,12 +111,12 @@ class MissaoService {
         }
         return <PessoaMissao>[];
       } else {
-        throw Exception('Erro ao listar atividades: ${response.statusCode}');
+        throw Exception('Não foi possível carregar suas atividades.');
       }
     } on DioException catch (e) {
-      throw Exception('Erro de conexão ao listar atividades: ${e.message}');
+      throw Exception('Não foi possível carregar suas atividades.');
     } catch (e) {
-      throw Exception('Erro ao listar atividades: $e');
+      throw Exception('Não foi possível carregar suas atividades.');
     }
   }
 
@@ -135,12 +135,12 @@ class MissaoService {
       if (response.statusCode == 200) {
         return PessoaMissao.fromJson(response.data as Map<String, dynamic>);
       } else {
-        throw Exception('Erro ao obter atividade: ${response.statusCode}');
+        throw Exception('Não foi possível abrir a atividade.');
       }
     } on DioException catch (e) {
-      throw Exception('Erro de conexão ao obter atividade: ${e.message}');
+      throw Exception('Não foi possível abrir a atividade.');
     } catch (e) {
-      throw Exception('Erro ao obter atividade: $e');
+      throw Exception('Não foi possível abrir a atividade.');
     }
   }
 
@@ -160,12 +160,12 @@ class MissaoService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return PessoaMissao.fromJson(response.data as Map<String, dynamic>);
       } else {
-        throw Exception('Erro ao atribuir missão: ${response.statusCode}');
+        throw Exception('Não foi possível atribuir a missão.');
       }
     } on DioException catch (e) {
-      throw Exception('Erro de conexão ao atribuir missão: ${e.message}');
+      throw Exception('Não foi possível atribuir a missão.');
     } catch (e) {
-      throw Exception('Erro ao atribuir missão: $e');
+      throw Exception('Não foi possível atribuir a missão.');
     }
   }
 
@@ -187,17 +187,12 @@ class MissaoService {
       if (response.statusCode == 200) {
         return PessoaMissao.fromJson(response.data as Map<String, dynamic>);
       } else {
-        throw Exception('Erro ao atualizar atividade: ${response.statusCode}');
+        throw Exception('Não foi possível atualizar a atividade.');
       }
     } on DioException catch (e) {
-      final statusCode = e.response?.statusCode;
-      final responseData = e.response?.data;
-      final details = responseData == null ? '' : ' | resposta: $responseData';
-      throw Exception(
-        'Erro ao atualizar atividade${statusCode != null ? ' ($statusCode)' : ''}: ${e.message ?? e.type.name}$details',
-      );
+      throw Exception('Não foi possível atualizar a atividade.');
     } catch (e) {
-      throw Exception('Erro ao atualizar atividade: $e');
+      throw Exception('Não foi possível atualizar a atividade.');
     }
   }
 
@@ -244,12 +239,12 @@ class MissaoService {
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception('Erro ao remover atividade: ${response.statusCode}');
+        throw Exception('Não foi possível remover a atividade.');
       }
     } on DioException catch (e) {
-      throw Exception('Erro de conexão ao remover atividade: ${e.message}');
+      throw Exception('Não foi possível remover a atividade.');
     } catch (e) {
-      throw Exception('Erro ao remover atividade: $e');
+      throw Exception('Não foi possível remover a atividade.');
     }
   }
 }

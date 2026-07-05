@@ -41,13 +41,13 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
         allowedExtensions: ['pdf'],
       );
       if (result == null) {
-        setState(() => _status = 'Seleção cancelada.');
+        setState(() => _status = 'Seleção cancelada pelo usuário.');
         return;
       }
 
       final fileBytes = result.files.single.bytes;
       if (fileBytes == null) {
-        setState(() => _status = 'Erro: não foi possível ler o arquivo.');
+        setState(() => _status = 'Não foi possível ler o arquivo selecionado.');
         return;
       }
 
@@ -74,9 +74,9 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
       final needsBackendLogin = e is _BackendLoginRequiredException;
       setState(() {
         _needsBackendLogin = needsBackendLogin;
-        _status = 'Erro: ${_friendlyError(e)}';
+        _status = _friendlyError(e);
       });
-      print('❌ Erro: $e');
+      print('Erro no upload de PDF: $e');
     } finally {
       if (mounted) {
         setState(() {

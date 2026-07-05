@@ -131,6 +131,10 @@ Assim, o Action conseguirá clonar repositórios privados.
 - `backend-repo/` - Back-end Java/Spring Boot (sincronizado automaticamente)
 - `firebase/` - Configurações e regras Firestore
 
+## Documentação Arquitetural
+
+- [SDD e C4 da aplicação](docs/arquitetura/sdd-c4.md)
+
 ## Tecnologias
 
 - Flutter e Dart
