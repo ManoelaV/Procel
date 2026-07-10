@@ -1,14 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../config/api_config.dart';
 import '../../models/room_model.dart';
 import '../../models/timetable_entry.dart';
 import '../../pages/backend_auth_screen.dart';
 import '../../services/backend_session.dart';
 import '../../services/pdf_parser_service.dart';
+import '../../services/schedule_room_service.dart';
 
 class UploadPdfRoomsWidget extends StatefulWidget {
   const UploadPdfRoomsWidget({super.key});
@@ -36,45 +33,79 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
         _needsBackendLogin = false;
       });
 
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf'],
-      );
-      if (result == null) {
-        setState(() => _status = 'Seleção cancelada pelo usuário.');
+      PlatformFile? file;
+      try {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['pdf'],
+          withData: true,
+        );
+        if (result == null) {
+          setState(() => _status = 'Seleção cancelada pelo usuário.');
+          return;
+        }
+        file = result.files.single;
+      } catch (e) {
+        setState(() {
+          _status = 'Erro ao selecionar arquivo: $e';
+        });
         return;
       }
 
-      final fileBytes = result.files.single.bytes;
-      if (fileBytes == null) {
+      if (file.bytes == null) {
         setState(() => _status = 'Não foi possível ler o arquivo selecionado.');
         return;
       }
 
       setState(() => _status = 'Extraindo texto do PDF...');
-      final text = await PdfParserService.extractTextFromBytes(fileBytes);
+      final text = await PdfParserService.extractTextFromBytes(file.bytes!);
+
+      if (text.isEmpty) {
+        setState(() => _status = 'Não foi possível extrair texto do PDF.');
+        return;
+      }
+
+      // Extrai matrícula e período letivo do cabeçalho do PDF
+      final matricula = PdfParserService.extractMatricula(text);
+      final periodoLetivo = PdfParserService.extractPeriodoLetivo(text);
+
+      if (matricula == null || periodoLetivo == null) {
+        setState(() {
+          _status = matricula == null
+              ? 'Não foi possível identificar a matrícula no PDF.'
+              : 'Não foi possível identificar o período letivo no PDF.';
+        });
+        return;
+      }
 
       setState(() => _status = 'Parseando horários do PDF...');
       final entries = PdfParserService.parseTimetableFromText(text);
 
-      if (entries.isEmpty) {
-        setState(() => _status = 'Nenhuma disciplina encontrada no PDF.');
-        return;
-      }
-
-      setState(() => _status = 'Enviando dados para o servidor...');
-      final mapping = await _fetchRoomsForSchedule(entries);
-
       setState(() {
-        _status = 'Mapeamento concluído com sucesso!';
+        _status =
+            '${entries.length} disciplina(s) encontrada(s). Buscando salas...';
+      });
+
+      // USA A MATRÍCULA DO PDF (ex: 22202589) como pessoaId
+      // A API /api/pessoas/{pessoaId}/disciplinas aceita userId ou matricula
+      final mapping = await ScheduleRoomService.fetchRoomsForSchedule(
+        entries: entries,
+        matricula: matricula,
+        periodoLetivo: periodoLetivo,
+      );
+
+      final encontradas = mapping.values.whereType<Room>().length;
+      setState(() {
+        _status = 'Mapeamento concluído! $encontradas sala(s) encontrada(s).';
         _rooms = mapping.values.whereType<Room>().toList();
       });
       _showMappingResults(mapping);
     } catch (e) {
-      final needsBackendLogin = e is _BackendLoginRequiredException;
+      final errorMsg = _friendlyError(e);
+      final isLoginError = errorMsg.contains('Login');
       setState(() {
-        _needsBackendLogin = needsBackendLogin;
-        _status = _friendlyError(e);
+        _needsBackendLogin = isLoginError;
+        _status = errorMsg;
       });
       print('Erro no upload de PDF: $e');
     } finally {
@@ -89,117 +120,46 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
   String _friendlyError(Object error) =>
       error.toString().replaceFirst('Exception: ', '');
 
-  Future<Map<TimetableEntry, Room?>> _fetchRoomsForSchedule(
-    List<TimetableEntry> entries,
-  ) async {
-    final url = Uri.parse(
-      '${ApiConfig.baseUrl}${ApiConfig.API_PREFIX}/schedule/rooms',
-    );
-    final body = jsonEncode({
-      'entries': entries.map((e) => e.toJson()).toList(),
-    });
-
-    // Usa a mesma sessao salva pelo login do back-end.
-    String? token = await BackendSession.restoreToken();
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final possibleKeys = [
-        'procel_backend_access_token',
-        'token',
-        'auth_token',
-        'access_token',
-        'jwt_token',
-        'api_token',
-      ];
-      for (var key in possibleKeys) {
-        if (token != null && token.isNotEmpty) break;
-        token = prefs.getString(key);
-      }
-    } catch (e) {
-      print('Erro ao obter token: $e');
-    }
-
-    final headers = <String, String>{'Content-Type': 'application/json'};
-    if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $token';
-    } else {
-      throw const _BackendLoginRequiredException(
-        'Login do back-end ausente. Entre novamente no app e tente enviar o PDF.',
-      );
-    }
-
-    final response = await http.post(url, headers: headers, body: body);
-
-    if (response.statusCode != 200) {
-      if (response.statusCode == 401) {
-        if (await _hasValidBackendSession(headers)) {
-          throw const _ScheduleRoomsEndpointException(
-            'O servidor aceitou seu login, mas nao disponibilizou o endpoint /api/schedule/rooms. Verifique ou publique esse endpoint no back-end.',
-          );
-        }
-
-        await BackendSession.clear();
-        throw const _BackendLoginRequiredException(
-          'Sessao expirada. Entre novamente no app e tente enviar o PDF.',
-        );
-      }
-
-      throw Exception(
-        'Falha ao buscar salas: ${response.statusCode} - ${response.body}',
-      );
-    }
-
-    final Map<String, dynamic> data = jsonDecode(response.body);
-    final List<dynamic> roomsData = data['rooms'] ?? [];
-    if (roomsData.length != entries.length) {
-      throw Exception(
-        'Número de salas retornado (${roomsData.length}) não coincide com o número de entradas (${entries.length})',
-      );
-    }
-
-    Map<TimetableEntry, Room?> result = {};
-    for (int i = 0; i < entries.length; i++) {
-      final entry = entries[i];
-      final roomJson = roomsData[i];
-      Room? room;
-      if (roomJson != null) {
-        room = Room.fromJson(roomJson);
-      }
-      result[entry] = room;
-    }
-    return result;
-  }
-
-  Future<bool> _hasValidBackendSession(Map<String, String> headers) async {
-    try {
-      final uri = Uri.parse(
-        '${ApiConfig.baseUrl}${ApiConfig.API_PREFIX}/missoes',
-      );
-      final response = await http
-          .get(uri, headers: headers)
-          .timeout(Duration(seconds: ApiConfig.TIMEOUT_SECONDS));
-      return response.statusCode >= 200 && response.statusCode < 300;
-    } catch (_) {
-      return false;
-    }
-  }
-
   void _showMappingResults(Map<TimetableEntry, Room?> mapping) {
+    final encontradas = mapping.values.whereType<Room>().length;
+    final naoEncontradas = mapping.length - encontradas;
+
     showModalBottomSheet(
       context: context,
       builder: (_) => SizedBox(
         height: 400,
-        child: ListView(
-          children: mapping.entries.map((e) {
-            final entry = e.key;
-            final room = e.value;
-            return ListTile(
-              title: Text(entry.toString()),
-              subtitle: Text(
-                room != null ? 'Sala: ${room.name}' : 'Sala não encontrada',
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                '$encontradas sala(s) encontrada(s), $naoEncontradas não encontrada(s)',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
-            );
-          }).toList(),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                children: mapping.entries.map((e) {
+                  final entry = e.key;
+                  final room = e.value;
+                  return ListTile(
+                    title: Text(entry.disciplina ?? entry.codigo ?? '?'),
+                    subtitle: Text(
+                      '${entry.dia ?? ''} ${entry.startTime ?? ''}-${entry.endTime ?? ''}'
+                      '${room != null ? ' → Sala: ${room.name}' : ' → Sala não encontrada'}',
+                    ),
+                    trailing: room != null
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : const Icon(Icons.cancel, color: Colors.red),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -234,7 +194,37 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
           label: const Text('Enviar PDF de horários'),
         ),
         const SizedBox(height: 12),
-        if (_status != null) Text(_status!),
+        if (_status != null)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _status!.contains('sucesso')
+                  ? Colors.green.shade50
+                  : _status!.contains('Erro')
+                  ? Colors.red.shade50
+                  : Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: _status!.contains('sucesso')
+                    ? Colors.green.shade200
+                    : _status!.contains('Erro')
+                    ? Colors.red.shade200
+                    : Colors.blue.shade200,
+              ),
+            ),
+            child: Text(
+              _status!,
+              style: TextStyle(
+                color: _status!.contains('sucesso')
+                    ? Colors.green.shade800
+                    : _status!.contains('Erro')
+                    ? Colors.red.shade800
+                    : Colors.blue.shade800,
+                fontSize: 13,
+              ),
+            ),
+          ),
         if (_needsBackendLogin) ...[
           const SizedBox(height: 8),
           OutlinedButton.icon(
@@ -254,22 +244,4 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
       ],
     );
   }
-}
-
-class _BackendLoginRequiredException implements Exception {
-  const _BackendLoginRequiredException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => message;
-}
-
-class _ScheduleRoomsEndpointException implements Exception {
-  const _ScheduleRoomsEndpointException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => message;
 }

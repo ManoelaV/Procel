@@ -17,13 +17,11 @@ PROCEL é uma aplicação mobile desenvolvida em Flutter que ajuda usuários a m
 
 - Sistema de autenticação com Firebase
 - Gerenciamento de usuários no Firestore
-- Suporte para múltiplas formas de login (email, Google, Apple, GitHub)
 - Autenticação anônima disponível
 
 ### Páginas e Funcionalidades
 
 - Página de metas (adicionar, visualizar, gerenciar metas)
-- Página de sintomas relacionados a diabetes
 - Página de notificações
 - Página de configurações do usuário
 - Página de escalas de motivação
@@ -91,6 +89,7 @@ flutter build ios --release
 
 # Web
 flutter build web
+
 ```
 
 ## Sincronização do Backend

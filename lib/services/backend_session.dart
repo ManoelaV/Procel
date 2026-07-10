@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -22,6 +23,10 @@ class BackendLoginResult {
   final List<String> roles;
 
   factory BackendLoginResult.fromJson(Map<String, dynamic> json) {
+    final pessoa = json['pessoa'] is Map<String, dynamic>
+        ? json['pessoa'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+
     return BackendLoginResult(
       accessToken:
           json['accessToken'] as String? ??
@@ -36,8 +41,14 @@ class BackendLoginResult {
           json['tokenType'] as String? ??
           json['token_type'] as String? ??
           'Bearer',
-      userId: json['userId'] as String? ?? '',
-      email: json['email'] as String? ?? '',
+      userId:
+          json['userId'] as String? ??
+          json['user_id'] as String? ??
+          json['id'] as String? ??
+          pessoa['userId'] as String? ??
+          pessoa['id'] as String? ??
+          '',
+      email: json['email'] as String? ?? pessoa['email'] as String? ?? '',
       roles: (json['roles'] as List<dynamic>? ?? const [])
           .map((role) => role.toString())
           .toList(),
@@ -86,6 +97,21 @@ class BackendSession {
     return prefs.getString(_userIdKey);
   }
 
+  static Future<bool> hasCompleteSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString(_tokenKey);
+    final userId = prefs.getString(_userIdKey);
+    final hasSession =
+        token != null &&
+        token.isNotEmpty &&
+        !_isExpiredJwt(token) &&
+        userId != null &&
+        userId.isNotEmpty;
+
+    ApiManager.setAccessToken(hasSession ? token : null);
+    return hasSession;
+  }
+
   static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
@@ -101,11 +127,24 @@ class BackendSession {
   }) async {
     await clear();
 
-    final response = await http.post(
-      ApiConfig.loginUri,
-      headers: ApiConfig.DEFAULT_HEADERS,
-      body: jsonEncode({'email': email, 'password': password}),
-    );
+    final http.Response response;
+    try {
+      response = await http
+          .post(
+            ApiConfig.loginUri,
+            headers: ApiConfig.DEFAULT_HEADERS,
+            body: jsonEncode({'email': email, 'password': password}),
+          )
+          .timeout(Duration(seconds: ApiConfig.TIMEOUT_SECONDS));
+    } on TimeoutException {
+      throw Exception(
+        'Back-end indisponivel. Verifique se a API esta rodando.',
+      );
+    } on http.ClientException {
+      throw Exception(
+        'Back-end indisponivel. Verifique se a API esta rodando.',
+      );
+    }
 
     final decoded = _decodeResponseBody(response.body);
 
@@ -121,9 +160,12 @@ class BackendSession {
     }
     await saveToken(result.accessToken);
 
-    if (result.userId.isNotEmpty) {
-      await saveUserId(result.userId);
+    if (result.userId.isEmpty) {
+      await clear();
+      throw Exception('Login aceito, mas o back-end nÃ£o retornou o usuario.');
     }
+
+    await saveUserId(result.userId);
     if (result.email.isNotEmpty) {
       await saveEmail(result.email);
       await saveDisplayName(result.email.split('@').first);
@@ -141,18 +183,31 @@ class BackendSession {
   }) async {
     await clear();
 
-    final response = await http.post(
-      ApiConfig.registerUri,
-      headers: ApiConfig.DEFAULT_HEADERS,
-      body: jsonEncode({
-        'nome': nome,
-        'email': email,
-        'userId': userId,
-        'password': password,
-        'telefone': telefone,
-        'matricula': matricula,
-      }),
-    );
+    final http.Response response;
+    try {
+      response = await http
+          .post(
+            ApiConfig.registerUri,
+            headers: ApiConfig.DEFAULT_HEADERS,
+            body: jsonEncode({
+              'nome': nome,
+              'email': email,
+              'userId': userId,
+              'password': password,
+              'telefone': telefone,
+              'matricula': matricula,
+            }),
+          )
+          .timeout(Duration(seconds: ApiConfig.TIMEOUT_SECONDS));
+    } on TimeoutException {
+      throw Exception(
+        'Back-end indisponivel. Verifique se a API esta rodando.',
+      );
+    } on http.ClientException {
+      throw Exception(
+        'Back-end indisponivel. Verifique se a API esta rodando.',
+      );
+    }
 
     final decoded = _decodeResponseBody(response.body);
 
@@ -175,6 +230,37 @@ class BackendSession {
       return decoded is Map<String, dynamic> ? decoded : {};
     } catch (_) {
       return {};
+    }
+  }
+
+  static bool _isExpiredJwt(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) {
+        return true;
+      }
+
+      final payload = utf8.decode(
+        base64Url.decode(base64Url.normalize(parts[1])),
+      );
+      final decoded = jsonDecode(payload);
+      if (decoded is! Map<String, dynamic>) {
+        return true;
+      }
+
+      final exp = decoded['exp'];
+      final expSeconds = exp is int ? exp : int.tryParse(exp?.toString() ?? '');
+      if (expSeconds == null) {
+        return true;
+      }
+
+      final expiresAt = DateTime.fromMillisecondsSinceEpoch(
+        expSeconds * 1000,
+        isUtc: true,
+      );
+      return !expiresAt.isAfter(DateTime.now().toUtc());
+    } catch (_) {
+      return true;
     }
   }
 }

@@ -6,6 +6,9 @@ import '../utils/friendly_message.dart';
 class BackendAuthScreen extends StatefulWidget {
   const BackendAuthScreen({super.key});
 
+  static String routeName = 'BackendAuth';
+  static String routePath = '/backend-auth';
+
   @override
   State<BackendAuthScreen> createState() => _BackendAuthScreenState();
 }
@@ -38,16 +41,19 @@ class _BackendAuthScreenState extends State<BackendAuthScreen> {
   }
 
   Future<void> _restoreSession() async {
-    final token = await BackendSession.restoreToken();
+    final hasCompleteSession = await BackendSession.hasCompleteSession();
     if (!mounted) return;
 
-    if (token != null && token.isNotEmpty) {
+    if (hasCompleteSession) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         Navigator.of(context).pushReplacementNamed('/shell');
       });
       return;
     }
+
+    await BackendSession.clear();
+    if (!mounted) return;
 
     setState(() {
       _checkingSession = false;

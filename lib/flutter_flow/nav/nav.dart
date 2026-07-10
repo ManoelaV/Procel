@@ -84,152 +84,145 @@ class AppStateNotifier extends ChangeNotifier {
 }
 
 GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
-      initialLocation: '/',
-      debugLogDiagnostics: true,
-      refreshListenable: appStateNotifier,
-      navigatorKey: appNavigatorKey,
-      errorBuilder: (context, state) => _RouteErrorBuilder(
-        state: state,
-        child: appStateNotifier.loggedIn ? HomeWidget() : CadastroWidget(),
-      ),
-      routes: [
-        FFRoute(
-          name: '_initialize',
-          path: '/',
-          builder: (context, _) =>
-              appStateNotifier.loggedIn ? HomeWidget() : CadastroWidget(),
-        ),
-        FFRoute(
-          name: CadastroWidget.routeName,
-          path: CadastroWidget.routePath,
-          builder: (context, params) => CadastroWidget(),
-        ),
-        FFRoute(
-          name: HomeWidget.routeName,
-          path: HomeWidget.routePath,
-          builder: (context, params) => HomeWidget(),
-        ),
-        FFRoute(
-          name: TarefaWidget.routeName,
-          path: TarefaWidget.routePath,
-          builder: (context, params) => TarefaWidget(),
-        ),
-        FFRoute(
-          name: Tarefa2Widget.routeName,
-          path: Tarefa2Widget.routePath,
-          builder: (context, params) => Tarefa2Widget(),
-        ),
-        FFRoute(
-          name: Tarefa3Widget.routeName,
-          path: Tarefa3Widget.routePath,
-          builder: (context, params) => Tarefa3Widget(),
-        ),
-        FFRoute(
-          name: FinalTarefaWidget.routeName,
-          path: FinalTarefaWidget.routePath,
-          builder: (context, params) => FinalTarefaWidget(),
-        ),
-        FFRoute(
-          name: InfoVideosWidget.routeName,
-          path: InfoVideosWidget.routePath,
-          builder: (context, params) => InfoVideosWidget(),
-        ),
-        FFRoute(
-          name: MetasWidget.routeName,
-          path: MetasWidget.routePath,
-          builder: (context, params) => MetasWidget(),
-        ),
-        FFRoute(
-          name: EscalaDeMotivacaoWidget.routeName,
-          path: EscalaDeMotivacaoWidget.routePath,
-          builder: (context, params) => EscalaDeMotivacaoWidget(),
-        ),
-        FFRoute(
-          name: BpnssWidget.routeName,
-          path: BpnssWidget.routePath,
-          builder: (context, params) => BpnssWidget(),
-        ),
-        FFRoute(
-          name: NoticiasWidget.routeName,
-          path: NoticiasWidget.routePath,
-          requireAuth: true,
-          builder: (context, params) => NoticiasWidget(),
-        ),
-        FFRoute(
-          name: NotificacoesWidget.routeName,
-          path: NotificacoesWidget.routePath,
-          builder: (context, params) => NotificacoesWidget(),
-        ),
-        FFRoute(
-          name: InfoDiabetes3Widget.routeName,
-          path: InfoDiabetes3Widget.routePath,
-          builder: (context, params) => InfoDiabetes3Widget(),
-        ),
-        FFRoute(
-          name: SintomasDiabetes2Widget.routeName,
-          path: SintomasDiabetes2Widget.routePath,
-          builder: (context, params) => SintomasDiabetes2Widget(),
-        ),
-        FFRoute(
-          name: SaibamaissobreoprojetoWidget.routeName,
-          path: SaibamaissobreoprojetoWidget.routePath,
-          builder: (context, params) => SaibamaissobreoprojetoWidget(),
-        ),
-        FFRoute(
-          name: RedefinicaoSenhaWidget.routeName,
-          path: RedefinicaoSenhaWidget.routePath,
-          builder: (context, params) => RedefinicaoSenhaWidget(),
-        ),
-        FFRoute(
-          name: ConfiguracoesWidget.routeName,
-          path: ConfiguracoesWidget.routePath,
-          builder: (context, params) => ConfiguracoesWidget(),
-        ),
-        FFRoute(
-          name: MudarSenhaWidget.routeName,
-          path: MudarSenhaWidget.routePath,
-          builder: (context, params) => MudarSenhaWidget(),
-        ),
-        FFRoute(
-          name: CadastroCopyWidget.routeName,
-          path: CadastroCopyWidget.routePath,
-          builder: (context, params) => CadastroCopyWidget(),
-        ),
-        FFRoute(
-          name: SintomasDiabetes2CopyWidget.routeName,
-          path: SintomasDiabetes2CopyWidget.routePath,
-          builder: (context, params) => SintomasDiabetes2CopyWidget(),
-        ),
-        FFRoute(
-          name: TarefaCopyWidget.routeName,
-          path: TarefaCopyWidget.routePath,
-          builder: (context, params) => TarefaCopyWidget(),
-        ),
-        FFRoute(
-          name: InfoVideosCopyWidget.routeName,
-          path: InfoVideosCopyWidget.routePath,
-          builder: (context, params) => InfoVideosCopyWidget(),
-        ),
-        FFRoute(
-          name: Tarefa2CopyWidget.routeName,
-          path: Tarefa2CopyWidget.routePath,
-          builder: (context, params) => Tarefa2CopyWidget(),
-        ),
-        FFRoute(
-          name: MetasCopyWidget.routeName,
-          path: MetasCopyWidget.routePath,
-          builder: (context, params) => MetasCopyWidget(),
-        )
-      ].map((r) => r.toRoute(appStateNotifier)).toList(),
-      observers: [routeObserver],
-    );
+  initialLocation: '/',
+  debugLogDiagnostics: true,
+  refreshListenable: appStateNotifier,
+  navigatorKey: appNavigatorKey,
+  errorBuilder: (context, state) => _RouteErrorBuilder(
+    state: state,
+    child: appStateNotifier.loggedIn ? HomeWidget() : BackendAuthScreen(),
+  ),
+  routes: [
+    FFRoute(
+      name: '_initialize',
+      path: '/',
+      builder: (context, _) =>
+          appStateNotifier.loggedIn ? HomeWidget() : BackendAuthScreen(),
+    ),
+    FFRoute(
+      name: BackendAuthScreen.routeName,
+      path: BackendAuthScreen.routePath,
+      builder: (context, params) => BackendAuthScreen(),
+    ),
+    FFRoute(
+      name: HomeWidget.routeName,
+      path: HomeWidget.routePath,
+      builder: (context, params) => HomeWidget(),
+    ),
+    FFRoute(
+      name: TarefaWidget.routeName,
+      path: TarefaWidget.routePath,
+      builder: (context, params) => TarefaWidget(),
+    ),
+    FFRoute(
+      name: Tarefa2Widget.routeName,
+      path: Tarefa2Widget.routePath,
+      builder: (context, params) => Tarefa2Widget(),
+    ),
+    FFRoute(
+      name: Tarefa3Widget.routeName,
+      path: Tarefa3Widget.routePath,
+      builder: (context, params) => Tarefa3Widget(),
+    ),
+    FFRoute(
+      name: FinalTarefaWidget.routeName,
+      path: FinalTarefaWidget.routePath,
+      builder: (context, params) => FinalTarefaWidget(),
+    ),
+    FFRoute(
+      name: InfoVideosWidget.routeName,
+      path: InfoVideosWidget.routePath,
+      builder: (context, params) => InfoVideosWidget(),
+    ),
+    FFRoute(
+      name: MetasWidget.routeName,
+      path: MetasWidget.routePath,
+      builder: (context, params) => MetasWidget(),
+    ),
+    FFRoute(
+      name: EscalaDeMotivacaoWidget.routeName,
+      path: EscalaDeMotivacaoWidget.routePath,
+      builder: (context, params) => EscalaDeMotivacaoWidget(),
+    ),
+    FFRoute(
+      name: BpnssWidget.routeName,
+      path: BpnssWidget.routePath,
+      builder: (context, params) => BpnssWidget(),
+    ),
+    FFRoute(
+      name: NoticiasWidget.routeName,
+      path: NoticiasWidget.routePath,
+      requireAuth: true,
+      builder: (context, params) => NoticiasWidget(),
+    ),
+    FFRoute(
+      name: NotificacoesWidget.routeName,
+      path: NotificacoesWidget.routePath,
+      builder: (context, params) => NotificacoesWidget(),
+    ),
+    FFRoute(
+      name: InfoDiabetes3Widget.routeName,
+      path: InfoDiabetes3Widget.routePath,
+      builder: (context, params) => InfoDiabetes3Widget(),
+    ),
+    FFRoute(
+      name: SintomasDiabetes2Widget.routeName,
+      path: SintomasDiabetes2Widget.routePath,
+      builder: (context, params) => SintomasDiabetes2Widget(),
+    ),
+    FFRoute(
+      name: SaibamaissobreoprojetoWidget.routeName,
+      path: SaibamaissobreoprojetoWidget.routePath,
+      builder: (context, params) => SaibamaissobreoprojetoWidget(),
+    ),
+    FFRoute(
+      name: RedefinicaoSenhaWidget.routeName,
+      path: RedefinicaoSenhaWidget.routePath,
+      builder: (context, params) => RedefinicaoSenhaWidget(),
+    ),
+    FFRoute(
+      name: ConfiguracoesWidget.routeName,
+      path: ConfiguracoesWidget.routePath,
+      builder: (context, params) => ConfiguracoesWidget(),
+    ),
+    FFRoute(
+      name: MudarSenhaWidget.routeName,
+      path: MudarSenhaWidget.routePath,
+      builder: (context, params) => MudarSenhaWidget(),
+    ),
+    FFRoute(
+      name: SintomasDiabetes2CopyWidget.routeName,
+      path: SintomasDiabetes2CopyWidget.routePath,
+      builder: (context, params) => SintomasDiabetes2CopyWidget(),
+    ),
+    FFRoute(
+      name: TarefaCopyWidget.routeName,
+      path: TarefaCopyWidget.routePath,
+      builder: (context, params) => TarefaCopyWidget(),
+    ),
+    FFRoute(
+      name: InfoVideosCopyWidget.routeName,
+      path: InfoVideosCopyWidget.routePath,
+      builder: (context, params) => InfoVideosCopyWidget(),
+    ),
+    FFRoute(
+      name: Tarefa2CopyWidget.routeName,
+      path: Tarefa2CopyWidget.routePath,
+      builder: (context, params) => Tarefa2CopyWidget(),
+    ),
+    FFRoute(
+      name: MetasCopyWidget.routeName,
+      path: MetasCopyWidget.routePath,
+      builder: (context, params) => MetasCopyWidget(),
+    ),
+  ].map((r) => r.toRoute(appStateNotifier)).toList(),
+  observers: [routeObserver],
+);
 
 extension NavParamExtensions on Map<String, String?> {
   Map<String, String> get withoutNulls => Map.fromEntries(
-        entries
-            .where((e) => e.value != null)
-            .map((e) => MapEntry(e.key, e.value!)),
-      );
+    entries.where((e) => e.value != null).map((e) => MapEntry(e.key, e.value!)),
+  );
 }
 
 extension NavigationExtensions on BuildContext {
@@ -240,15 +233,14 @@ extension NavigationExtensions on BuildContext {
     Map<String, String> queryParameters = const <String, String>{},
     Object? extra,
     bool ignoreRedirect = false,
-  }) =>
-      !mounted || GoRouter.of(this).shouldRedirect(ignoreRedirect)
-          ? null
-          : goNamed(
-              name,
-              pathParameters: pathParameters,
-              queryParameters: queryParameters,
-              extra: extra,
-            );
+  }) => !mounted || GoRouter.of(this).shouldRedirect(ignoreRedirect)
+      ? null
+      : goNamed(
+          name,
+          pathParameters: pathParameters,
+          queryParameters: queryParameters,
+          extra: extra,
+        );
 
   void pushNamedAuth(
     String name,
@@ -257,15 +249,14 @@ extension NavigationExtensions on BuildContext {
     Map<String, String> queryParameters = const <String, String>{},
     Object? extra,
     bool ignoreRedirect = false,
-  }) =>
-      !mounted || GoRouter.of(this).shouldRedirect(ignoreRedirect)
-          ? null
-          : pushNamed(
-              name,
-              pathParameters: pathParameters,
-              queryParameters: queryParameters,
-              extra: extra,
-            );
+  }) => !mounted || GoRouter.of(this).shouldRedirect(ignoreRedirect)
+      ? null
+      : pushNamed(
+          name,
+          pathParameters: pathParameters,
+          queryParameters: queryParameters,
+          extra: extra,
+        );
 
   void safePop() {
     // If there is only one route on the stack, navigate to the initial
@@ -282,8 +273,8 @@ extension GoRouterExtensions on GoRouter {
   AppStateNotifier get appState => AppStateNotifier.instance;
   void prepareAuthEvent([bool ignoreRedirect = false]) =>
       appState.hasRedirect() && !ignoreRedirect
-          ? null
-          : appState.updateNotifyOnAuthChange(false);
+      ? null
+      : appState.updateNotifyOnAuthChange(false);
   bool shouldRedirect(bool ignoreRedirect) =>
       !ignoreRedirect && appState.hasRedirect();
   void clearRedirectLocation() => appState.clearRedirectLocation();
@@ -321,18 +312,17 @@ class FFParameters {
       asyncParams.containsKey(param.key) && param.value is String;
   bool get hasFutures => state.allParams.entries.any(isAsyncParam);
   Future<bool> completeFutures() => Future.wait(
-        state.allParams.entries.where(isAsyncParam).map(
-          (param) async {
-            final doc = await asyncParams[param.key]!(param.value)
-                .onError((_, __) => null);
-            if (doc != null) {
-              futureParamValues[param.key] = doc;
-              return true;
-            }
-            return false;
-          },
-        ),
-      ).onError((_, __) => [false]).then((v) => v.every((e) => e));
+    state.allParams.entries.where(isAsyncParam).map((param) async {
+      final doc = await asyncParams[param.key]!(
+        param.value,
+      ).onError((_, __) => null);
+      if (doc != null) {
+        futureParamValues[param.key] = doc;
+        return true;
+      }
+      return false;
+    }),
+  ).onError((_, __) => [false]).then((v) => v.every((e) => e));
 
   dynamic getParam<T>(
     String paramName,
@@ -381,71 +371,70 @@ class FFRoute {
   final List<GoRoute> routes;
 
   GoRoute toRoute(AppStateNotifier appStateNotifier) => GoRoute(
-        name: name,
-        path: path,
-        redirect: (context, state) {
-          if (appStateNotifier.shouldRedirect) {
-            final redirectLocation = appStateNotifier.getRedirectLocation();
-            appStateNotifier.clearRedirectLocation();
-            return redirectLocation;
-          }
+    name: name,
+    path: path,
+    redirect: (context, state) {
+      if (appStateNotifier.shouldRedirect) {
+        final redirectLocation = appStateNotifier.getRedirectLocation();
+        appStateNotifier.clearRedirectLocation();
+        return redirectLocation;
+      }
 
-          if (requireAuth && !appStateNotifier.loggedIn) {
-            appStateNotifier.setRedirectLocationIfUnset(state.uri.toString());
-            return '/cadastro';
-          }
-          return null;
-        },
-        pageBuilder: (context, state) {
-          fixStatusBarOniOS16AndBelow(context);
-          final ffParams = FFParameters(state, asyncParams);
-          final page = ffParams.hasFutures
-              ? FutureBuilder(
-                  future: ffParams.completeFutures(),
-                  builder: (context, _) => builder(context, ffParams),
-                )
-              : builder(context, ffParams);
-          final child = appStateNotifier.loading
-              ? Center(
-                  child: SizedBox(
-                    width: 50.0,
-                    height: 50.0,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        FlutterFlowTheme.of(context).primary,
+      if (requireAuth && !appStateNotifier.loggedIn) {
+        appStateNotifier.setRedirectLocationIfUnset(state.uri.toString());
+        return BackendAuthScreen.routePath;
+      }
+      return null;
+    },
+    pageBuilder: (context, state) {
+      fixStatusBarOniOS16AndBelow(context);
+      final ffParams = FFParameters(state, asyncParams);
+      final page = ffParams.hasFutures
+          ? FutureBuilder(
+              future: ffParams.completeFutures(),
+              builder: (context, _) => builder(context, ffParams),
+            )
+          : builder(context, ffParams);
+      final child = appStateNotifier.loading
+          ? Center(
+              child: SizedBox(
+                width: 50.0,
+                height: 50.0,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    FlutterFlowTheme.of(context).primary,
+                  ),
+                ),
+              ),
+            )
+          : PushNotificationsHandler(child: page);
+
+      final transitionInfo = state.transitionInfo;
+      return transitionInfo.hasTransition
+          ? CustomTransitionPage(
+              key: state.pageKey,
+              name: state.name,
+              child: child,
+              transitionDuration: transitionInfo.duration,
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) =>
+                      PageTransition(
+                        type: transitionInfo.transitionType,
+                        duration: transitionInfo.duration,
+                        reverseDuration: transitionInfo.duration,
+                        alignment: transitionInfo.alignment,
+                        child: child,
+                      ).buildTransitions(
+                        context,
+                        animation,
+                        secondaryAnimation,
+                        child,
                       ),
-                    ),
-                  ),
-                )
-              : PushNotificationsHandler(child: page);
-
-          final transitionInfo = state.transitionInfo;
-          return transitionInfo.hasTransition
-              ? CustomTransitionPage(
-                  key: state.pageKey,
-                  name: state.name,
-                  child: child,
-                  transitionDuration: transitionInfo.duration,
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) =>
-                          PageTransition(
-                    type: transitionInfo.transitionType,
-                    duration: transitionInfo.duration,
-                    reverseDuration: transitionInfo.duration,
-                    alignment: transitionInfo.alignment,
-                    child: child,
-                  ).buildTransitions(
-                    context,
-                    animation,
-                    secondaryAnimation,
-                    child,
-                  ),
-                )
-              : MaterialPage(
-                  key: state.pageKey, name: state.name, child: child);
-        },
-        routes: routes,
-      );
+            )
+          : MaterialPage(key: state.pageKey, name: state.name, child: child);
+    },
+    routes: routes,
+  );
 }
 
 class TransitionInfo {
@@ -465,11 +454,8 @@ class TransitionInfo {
 }
 
 class _RouteErrorBuilder extends StatefulWidget {
-  const _RouteErrorBuilder({
-    Key? key,
-    required this.state,
-    required this.child,
-  }) : super(key: key);
+  const _RouteErrorBuilder({Key? key, required this.state, required this.child})
+    : super(key: key);
 
   final GoRouterState state;
   final Widget child;
@@ -507,8 +493,9 @@ class _RouteErrorBuilderState extends State<_RouteErrorBuilder> {
     }
 
     if (location != null) {
-      SchedulerBinding.instance
-          .addPostFrameCallback((_) => context.go(location!));
+      SchedulerBinding.instance.addPostFrameCallback(
+        (_) => context.go(location!),
+      );
     }
   }
 
@@ -530,10 +517,8 @@ class RootPageContext {
         location != rootPageContext?.errorRoute;
   }
 
-  static Widget wrap(Widget child, {String? errorRoute}) => Provider.value(
-        value: RootPageContext(true, errorRoute),
-        child: child,
-      );
+  static Widget wrap(Widget child, {String? errorRoute}) =>
+      Provider.value(value: RootPageContext(true, errorRoute), child: child);
 }
 
 extension GoRouterLocationExtension on GoRouter {

@@ -1,5 +1,5 @@
 // Export pages
-export '/pages/cadastro/cadastro_widget.dart' show CadastroWidget;
+export '/pages/backend_auth_screen.dart' show BackendAuthScreen;
 export '/pages/home/home_widget.dart' show HomeWidget;
 export '/pages/tarefa/tarefa_widget.dart' show TarefaWidget;
 export '/pages/tarefa2/tarefa2_widget.dart' show Tarefa2Widget;
@@ -21,7 +21,6 @@ export '/pages/redefinicao_senha/redefinicao_senha_widget.dart'
     show RedefinicaoSenhaWidget;
 export '/configuracoes/configuracoes_widget.dart' show ConfiguracoesWidget;
 export '/mudar_senha/mudar_senha_widget.dart' show MudarSenhaWidget;
-export '/pages/cadastro_copy/cadastro_copy_widget.dart' show CadastroCopyWidget;
 export '/sintomas_diabetes2_copy/sintomas_diabetes2_copy_widget.dart'
     show SintomasDiabetes2CopyWidget;
 export '/pages/tarefa_copy/tarefa_copy_widget.dart' show TarefaCopyWidget;

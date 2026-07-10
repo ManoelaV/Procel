@@ -146,20 +146,15 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                             height: MediaQuery.sizeOf(context).width >= 768.0
                                 ? 530.0
                                 : 630.0,
-                            constraints: BoxConstraints(
-                              maxWidth: 570.0,
-                            ),
+                            constraints: BoxConstraints(maxWidth: 570.0),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               boxShadow: [
                                 BoxShadow(
                                   blurRadius: 4.0,
                                   color: Color(0x33000000),
-                                  offset: Offset(
-                                    0.0,
-                                    2.0,
-                                  ),
-                                )
+                                  offset: Offset(0.0, 2.0),
+                                ),
                               ],
                               borderRadius: BorderRadius.circular(12.0),
                               border: Border.all(
@@ -171,7 +166,11 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                               alignment: AlignmentDirectional(0.0, -1.0),
                               child: Padding(
                                 padding: EdgeInsetsDirectional.fromSTEB(
-                                    24.0, 16.0, 24.0, 0.0),
+                                  24.0,
+                                  16.0,
+                                  24.0,
+                                  0.0,
+                                ),
                                 child: SingleChildScrollView(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.max,
@@ -198,23 +197,21 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                                             .override(
                                               font: GoogleFonts.plusJakartaSans(
                                                 fontWeight: FontWeight.w500,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .headlineMedium
-                                                        .fontStyle,
+                                                fontStyle: FlutterFlowTheme.of(
+                                                  context,
+                                                ).headlineMedium.fontStyle,
                                               ),
                                               color: Color(0xFF101213),
                                               fontSize: 24.0,
                                               letterSpacing: 0.0,
                                               fontWeight: FontWeight.w500,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .headlineMedium
-                                                      .fontStyle,
+                                              fontStyle: FlutterFlowTheme.of(
+                                                context,
+                                              ).headlineMedium.fontStyle,
                                             ),
                                         colors: [
                                           Color(0xFF38AB26),
-                                          Color(0xFF38AB26)
+                                          Color(0xFF38AB26),
                                         ],
                                         gradientDirection:
                                             GradientDirection.ltr,
@@ -222,7 +219,11 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                                       ),
                                       Padding(
                                         padding: EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 4.0, 0.0, 24.0),
+                                          0.0,
+                                          4.0,
+                                          0.0,
+                                          24.0,
+                                        ),
                                         child: Text(
                                           'Digite o email cadastrado para recuperar sua senha',
                                           textAlign: TextAlign.start,
@@ -231,27 +232,32 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                                               .override(
                                                 font:
                                                     GoogleFonts.plusJakartaSans(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .labelMedium
-                                                          .fontStyle,
-                                                ),
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .labelMedium
+                                                              .fontStyle,
+                                                    ),
                                                 color: Color(0xFF57636C),
                                                 fontSize: 14.0,
                                                 letterSpacing: 0.0,
                                                 fontWeight: FontWeight.w500,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .labelMedium
-                                                        .fontStyle,
+                                                fontStyle: FlutterFlowTheme.of(
+                                                  context,
+                                                ).labelMedium.fontStyle,
                                               ),
                                         ),
                                       ),
                                       Padding(
                                         padding: EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 0.0, 0.0, 16.0),
+                                          0.0,
+                                          0.0,
+                                          0.0,
+                                          16.0,
+                                        ),
                                         child: Container(
                                           width: double.infinity,
                                           child: TextFormField(
@@ -261,22 +267,22 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                                                 _model.emailCadastradoFocusNode,
                                             autofocus: true,
                                             autofillHints: [
-                                              AutofillHints.email
+                                              AutofillHints.email,
                                             ],
                                             obscureText: false,
                                             decoration: InputDecoration(
                                               labelText: 'Email',
-                                              labelStyle: FlutterFlowTheme.of(
-                                                      context)
-                                                  .labelLarge
-                                                  .override(
-                                                    font: GoogleFonts
-                                                        .plusJakartaSans(
+                                              labelStyle:
+                                                  FlutterFlowTheme.of(
+                                                    context,
+                                                  ).labelLarge.override(
+                                                    font: GoogleFonts.plusJakartaSans(
                                                       fontWeight:
                                                           FontWeight.w500,
                                                       fontStyle:
                                                           FlutterFlowTheme.of(
-                                                                  context)
+                                                                context,
+                                                              )
                                                               .labelLarge
                                                               .fontStyle,
                                                     ),
@@ -286,9 +292,8 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                                                     fontWeight: FontWeight.w500,
                                                     fontStyle:
                                                         FlutterFlowTheme.of(
-                                                                context)
-                                                            .labelLarge
-                                                            .fontStyle,
+                                                          context,
+                                                        ).labelLarge.fontStyle,
                                                   ),
                                               enabledBorder: OutlineInputBorder(
                                                 borderSide: BorderSide(
@@ -316,39 +321,43 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                                               ),
                                               focusedErrorBorder:
                                                   OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: Color(0xFFFF5963),
-                                                  width: 2.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(40.0),
-                                              ),
+                                                    borderSide: BorderSide(
+                                                      color: Color(0xFFFF5963),
+                                                      width: 2.0,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          40.0,
+                                                        ),
+                                                  ),
                                               filled: true,
                                               fillColor: Colors.white,
-                                              contentPadding:
-                                                  EdgeInsets.all(24.0),
+                                              contentPadding: EdgeInsets.all(
+                                                24.0,
+                                              ),
                                             ),
                                             style: FlutterFlowTheme.of(context)
                                                 .bodyLarge
                                                 .override(
-                                                  font: GoogleFonts
-                                                      .plusJakartaSans(
-                                                    fontWeight: FontWeight.w500,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyLarge
-                                                            .fontStyle,
-                                                  ),
+                                                  font:
+                                                      GoogleFonts.plusJakartaSans(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyLarge
+                                                                .fontStyle,
+                                                      ),
                                                   color: Color(0xFF101213),
                                                   fontSize: 16.0,
                                                   letterSpacing: 0.0,
                                                   fontWeight: FontWeight.w500,
                                                   fontStyle:
                                                       FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyLarge
-                                                          .fontStyle,
+                                                        context,
+                                                      ).bodyLarge.fontStyle,
                                                 ),
                                             keyboardType:
                                                 TextInputType.emailAddress,
@@ -359,31 +368,40 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                                         ),
                                       ),
                                       Align(
-                                        alignment:
-                                            AlignmentDirectional(0.0, 0.0),
+                                        alignment: AlignmentDirectional(
+                                          0.0,
+                                          0.0,
+                                        ),
                                         child: Padding(
                                           padding:
                                               EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 0.0, 16.0),
+                                                0.0,
+                                                0.0,
+                                                0.0,
+                                                16.0,
+                                              ),
                                           child: FFButtonWidget(
                                             onPressed: () async {
                                               _model.emailCadastrado =
                                                   await queryUsersRecordCount(
-                                                queryBuilder: (usersRecord) =>
-                                                    usersRecord.where(
-                                                  'email',
-                                                  isEqualTo: _model
-                                                      .emailCadastradoTextController
-                                                      .text,
-                                                ),
-                                              );
+                                                    queryBuilder:
+                                                        (
+                                                          usersRecord,
+                                                        ) => usersRecord.where(
+                                                          'email',
+                                                          isEqualTo: _model
+                                                              .emailCadastradoTextController
+                                                              .text,
+                                                        ),
+                                                  );
                                               if (_model.emailCadastrado == 1) {
                                                 if (_model
                                                     .emailCadastradoTextController
                                                     .text
                                                     .isEmpty) {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
                                                     SnackBar(
                                                       content: Text(
                                                         'Email required!',
@@ -401,19 +419,21 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                                               } else {
                                                 await showDialog(
                                                   context: context,
-                                                  builder:
-                                                      (alertDialogContext) {
+                                                  builder: (alertDialogContext) {
                                                     return WebViewAware(
                                                       child: AlertDialog(
                                                         title: Text(
-                                                            'Email Inválido'),
+                                                          'Email Inválido',
+                                                        ),
                                                         content: Text(
-                                                            'O email informado não está cadastrado.'),
+                                                          'O email informado não está cadastrado.',
+                                                        ),
                                                         actions: [
                                                           TextButton(
                                                             onPressed: () =>
                                                                 Navigator.pop(
-                                                                    alertDialogContext),
+                                                                  alertDialogContext,
+                                                                ),
                                                             child: Text('Ok'),
                                                           ),
                                                         ],
@@ -424,7 +444,8 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                                               }
 
                                               context.pushNamed(
-                                                  CadastroWidget.routeName);
+                                                BackendAuthScreen.routeName,
+                                              );
 
                                               safeSetState(() {});
                                             },
@@ -432,36 +453,44 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                                             options: FFButtonOptions(
                                               width: 230.0,
                                               height: 52.0,
-                                              padding: EdgeInsetsDirectional
-                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
-                                              iconPadding: EdgeInsetsDirectional
-                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                              padding:
+                                                  EdgeInsetsDirectional.fromSTEB(
+                                                    0.0,
+                                                    0.0,
+                                                    0.0,
+                                                    0.0,
+                                                  ),
+                                              iconPadding:
+                                                  EdgeInsetsDirectional.fromSTEB(
+                                                    0.0,
+                                                    0.0,
+                                                    0.0,
+                                                    0.0,
+                                                  ),
                                               color: Color(0xFF38AB26),
                                               textStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .titleSmall
-                                                      .override(
-                                                        font: GoogleFonts
-                                                            .plusJakartaSans(
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .titleSmall
-                                                                  .fontStyle,
-                                                        ),
-                                                        color: Colors.white,
-                                                        fontSize: 16.0,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .titleSmall
-                                                                .fontStyle,
-                                                      ),
+                                                  FlutterFlowTheme.of(
+                                                    context,
+                                                  ).titleSmall.override(
+                                                    font: GoogleFonts.plusJakartaSans(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .titleSmall
+                                                              .fontStyle,
+                                                    ),
+                                                    color: Colors.white,
+                                                    fontSize: 16.0,
+                                                    letterSpacing: 0.0,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                          context,
+                                                        ).titleSmall.fontStyle,
+                                                  ),
                                               elevation: 3.0,
                                               borderSide: BorderSide(
                                                 color: Colors.transparent,
@@ -475,12 +504,10 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                                       ),
                                     ],
                                   ),
-                                ).animateOnPageLoad(animationsMap[
-                                    'columnOnPageLoadAnimation']!),
+                                ).animateOnPageLoad(animationsMap['columnOnPageLoadAnimation']!),
                               ),
                             ),
-                          ).animateOnPageLoad(
-                              animationsMap['containerOnPageLoadAnimation']!),
+                          ).animateOnPageLoad(animationsMap['containerOnPageLoadAnimation']!),
                         ),
                       ],
                     ),
@@ -493,9 +520,7 @@ class _RedefinicaoSenhaWidgetState extends State<RedefinicaoSenhaWidget>
                   width: 169.0,
                   height: 169.0,
                   clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: BoxDecoration(shape: BoxShape.circle),
                   child: Image.asset(
                     'assets/images/frtog.jpg',
                     fit: BoxFit.cover,

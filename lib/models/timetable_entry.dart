@@ -2,6 +2,7 @@ class TimetableEntry {
   TimetableEntry({
     this.turma,
     this.disciplina,
+    this.codigo,
     this.dia,
     this.startTime,
     this.endTime,
@@ -9,6 +10,7 @@ class TimetableEntry {
 
   final String? turma;
   final String? disciplina;
+  final String? codigo;
   final String? dia;
   final String? startTime;
   final String? endTime;
@@ -16,6 +18,7 @@ class TimetableEntry {
   Map<String, dynamic> toJson() => {
     'turma': turma,
     'disciplina': disciplina,
+    'codigo': codigo,
     'dia': dia,
     'startTime': startTime,
     'endTime': endTime,

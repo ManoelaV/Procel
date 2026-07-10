@@ -24,9 +24,13 @@ String userFriendlyErrorMessage(
 
   if (normalized.contains('timeout') ||
       normalized.contains('conex') ||
+      normalized.contains('back-end indisponivel') ||
       normalized.contains('network') ||
       normalized.contains('socket') ||
       normalized.contains('dioexception')) {
+    if (normalized.contains('back-end indisponivel')) {
+      return rawMessage;
+    }
     return fallbackMessage;
   }
 
