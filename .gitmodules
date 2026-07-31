@@ -1,3 +1,7 @@
 [submodule "backend-repo"]
 	path = backend-repo
 	url = https://github.com/ravilon/PROCEL-Back-End.git
+
+[submodule "chatbot-repo"]
+	path = chatbot-repo
+	url = https://github.com/DanielPonttes/Chatbot-generico.git
