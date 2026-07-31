@@ -34,13 +34,6 @@ class PdfParserService {
     return match?.group(1);
   }
 
-  /// Extrai o nome do aluno do cabeçalho.
-  static String? extractAlunoNome(String text) {
-    final nomeRe = RegExp(r'Aluno\s+\d+\s*-\s*(.+)');
-    final match = nomeRe.firstMatch(text);
-    return match?.group(1)?.trim();
-  }
-
   /// Parser principal que extrai disciplinas do PDF da grade UFPel.
   ///
   /// Estratégia:
