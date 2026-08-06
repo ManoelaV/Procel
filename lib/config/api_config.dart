@@ -74,6 +74,24 @@ class ApiConfig {
   static Uri get presencasUri => _uri('/presencas');
   static Uri get regrasUri => _uri('/rules');
 
+  /// ============================================================
+  /// Configurações do Chatbot de Notificações
+  /// ============================================================
+
+  /// URL base do chatbot (porta 8000)
+  static const String CHATBOT_BASE_URL = 'http://localhost:8000';
+
+  /// Endpoints do chatbot
+  static Uri get chatbotHealthUri => Uri.parse('$CHATBOT_BASE_URL/health');
+  static Uri get chatbotChatUri => Uri.parse('$CHATBOT_BASE_URL/chat');
+  static Uri get chatbotProactiveUri =>
+      Uri.parse('$CHATBOT_BASE_URL/chat/proactive');
+  static Uri get chatbotPersonasUri => Uri.parse('$CHATBOT_BASE_URL/personas');
+  static Uri get chatbotTargetProfilesUri =>
+      Uri.parse('$CHATBOT_BASE_URL/target-profiles');
+  static Uri get chatbotNotificationsUri =>
+      Uri.parse('$CHATBOT_BASE_URL/notifications/saved');
+
   /// Ambiente de execução.
   static bool get isProduction =>
       _normalizedBaseUrl.contains('procel.servehttp.com');

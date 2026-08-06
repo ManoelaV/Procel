@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart'
 import 'package:provider/provider.dart' hide Consumer;
 
 import 'pages/backend_auth_screen.dart';
+import 'pages/chat_page.dart';
 import 'pages/upload_pdf_rooms/upload_pdf_rooms_widget.dart';
 import 'providers/auth_provider.dart';
 import 'services/backend_session.dart';
@@ -67,6 +68,7 @@ class _ShellPageState extends State<ShellPage> {
       const RankingScreen(),
       const BadgesScreen(),
       const ProfileScreen(),
+      const ChatPage(),
     ];
 
     return Scaffold(
@@ -91,6 +93,10 @@ class _ShellPageState extends State<ShellPage> {
           NavigationDestination(
             icon: Icon(Icons.person_rounded),
             label: 'Perfil',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.chat_bubble_rounded),
+            label: 'Chat',
           ),
         ],
       ),
