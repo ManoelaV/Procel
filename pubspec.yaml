@@ -45,9 +45,5 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/fonts/
     - assets/images/
-    - assets/audios/
-    - assets/jsons/
-    - assets/pdfs/
-    - assets/rive_animations/
-    - assets/videos/
