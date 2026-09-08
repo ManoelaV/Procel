@@ -78,8 +78,14 @@ class ApiConfig {
   /// Configurações do Chatbot de Notificações
   /// ============================================================
 
-  /// URL base do chatbot (porta 8000)
-  static const String CHATBOT_BASE_URL = 'http://localhost:8000';
+  /// URL base do chatbot (porta 8000).
+  ///
+  /// Pode ser sobrescrita usando:
+  /// `flutter run --dart-define=CHATBOT_BASE_URL=http://seu-url:8000`
+  static const String CHATBOT_BASE_URL = String.fromEnvironment(
+    'CHATBOT_BASE_URL',
+    defaultValue: 'http://localhost:8000',
+  );
 
   /// Endpoints do chatbot
   static Uri get chatbotHealthUri => Uri.parse('$CHATBOT_BASE_URL/health');

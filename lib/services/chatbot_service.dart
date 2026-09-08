@@ -124,7 +124,7 @@ class ChatbotService {
 
     if (decoded is List) {
       final personas = <Persona>[];
-      for (final item in decoded as List<dynamic>) {
+      for (final item in decoded) {
         if (item is Map<String, dynamic>) {
           personas.add(Persona.fromJson(item));
         }
@@ -141,7 +141,7 @@ class ChatbotService {
 
     if (decoded is List) {
       final profiles = <TargetProfile>[];
-      for (final item in decoded as List<dynamic>) {
+      for (final item in decoded) {
         if (item is Map<String, dynamic>) {
           profiles.add(TargetProfile.fromJson(item));
         }
@@ -230,16 +230,15 @@ class ChatbotService {
     }
   }
 
-  static Map<String, dynamic> _decodeResponseBody(String body) {
+  static dynamic _decodeResponseBody(String body) {
     if (body.trim().isEmpty) {
-      return {};
+      return <String, dynamic>{};
     }
 
     try {
-      final decoded = jsonDecode(body);
-      return decoded is Map<String, dynamic> ? decoded : {};
+      return jsonDecode(body);
     } catch (_) {
-      return {};
+      return <String, dynamic>{};
     }
   }
 }
