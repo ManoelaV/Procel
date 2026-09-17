@@ -9,14 +9,9 @@ import 'package:http/http.dart' as http;
 /// Note: This stub is never actually instantiated on non-web platforms
 /// (the code uses http.Client() instead), but it's needed for type compatibility.
 class BrowserClient extends http.BaseClient {
-  bool _withCredentials = false;
-
   /// Controls whether credentials are sent with cross-site requests.
   /// This is a no-op on non-web platforms (mobile/desktop).
-  bool get withCredentials => _withCredentials;
-  set withCredentials(bool value) {
-    _withCredentials = value;
-  }
+  bool withCredentials = false;
 
   // REQUIRED: BaseClient is abstract and requires send() to be implemented
   @override
@@ -24,6 +19,7 @@ class BrowserClient extends http.BaseClient {
     // Delegate to a standard client (this should never be called on non-web)
     return http.Client().send(request);
   }
+
   // OPTIONAL: close() has a default empty implementation in BaseClient
   // We can omit it since BaseClient provides a default
 }

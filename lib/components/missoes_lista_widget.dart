@@ -11,10 +11,10 @@ class MissoesListaWidget extends ConsumerWidget {
   final GamificationState? gamificationState;
 
   const MissoesListaWidget({
-    Key? key,
+    super.key,
     required this.pessoaId,
     this.gamificationState,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,11 +53,11 @@ class MissaoItemCard extends ConsumerWidget {
   final GamificationState? gamificationState;
 
   const MissaoItemCard({
-    Key? key,
+    super.key,
     required this.atividade,
     required this.pessoaId,
     this.gamificationState,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -149,7 +149,7 @@ class MissaoItemCard extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.2),
+                color: Colors.green.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: const Row(
@@ -203,6 +203,7 @@ class MissaoItemCard extends ConsumerWidget {
         rewardCoins: 5,
       );
 
+      if (!context.mounted) return;
       context.read<GamificationState>().applyMissionCompletion(concluida);
 
       // Recarrega as atividades

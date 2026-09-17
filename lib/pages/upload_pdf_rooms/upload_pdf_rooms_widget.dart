@@ -107,7 +107,7 @@ class _UploadPdfRoomsWidgetState extends State<UploadPdfRoomsWidget> {
         _needsBackendLogin = isLoginError;
         _status = errorMsg;
       });
-      print('Erro no upload de PDF: $e');
+      debugPrint('Erro no upload de PDF: $e');
     } finally {
       if (mounted) {
         setState(() {

@@ -197,10 +197,9 @@ class GamificationState extends ChangeNotifier {
 
   String get levelLabel => 'Level $level: $levelTitle';
 
-  String get xpLabel =>
-      '${_formatNumber(_xp)} / ${_formatNumber(nextLevelXp)} XP';
+  String get xpLabel => '${_formatNumber(_xp)} / ${_formatNumber(nextLevelXp)} XP';
   String get badgeProgressLabel =>
-      '${unlockedBadgesCount}/${_badgeCatalog.length} badges desbloqueados';
+      '$unlockedBadgesCount/${_badgeCatalog.length} badges desbloqueados';
 
   int get unlockedBadgesCount =>
       _badgeCatalog.where((badge) => _xp >= badge.thresholdXp).length;

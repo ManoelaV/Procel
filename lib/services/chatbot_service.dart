@@ -162,8 +162,10 @@ class ChatbotService {
     final body = <String, dynamic>{
       'message': message,
       'session_id': sessionId,
-      if (personaId != null) 'persona_id': personaId,
-      if (targetProfileId != null) 'target_profile_id': targetProfileId,
+      ...?personaId != null ? {'persona_id': personaId} : null,
+      ...?targetProfileId != null
+          ? {'target_profile_id': targetProfileId}
+          : null,
       'use_rag': useRag,
     };
 
@@ -187,9 +189,11 @@ class ChatbotService {
       'target_profile_id': targetProfileId,
       'notification_type_id': notificationTypeId,
       'notification_context': notificationContext,
-      if (roomId != null) 'room_id': roomId,
-      if (sensorExternalId != null) 'sensor_external_id': sensorExternalId,
-      if (pessoaId != null) 'pessoa_id': pessoaId,
+      ...?roomId != null ? {'room_id': roomId} : null,
+      ...?sensorExternalId != null
+          ? {'sensor_external_id': sensorExternalId}
+          : null,
+      ...?pessoaId != null ? {'pessoa_id': pessoaId} : null,
       'use_rag': useRag,
     };
 

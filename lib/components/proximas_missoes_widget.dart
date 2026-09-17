@@ -11,8 +11,7 @@ import '../utils/friendly_message.dart';
 class ProximasMissoesWidget extends ConsumerWidget {
   final int maxMissoes;
 
-  const ProximasMissoesWidget({Key? key, this.maxMissoes = 3})
-    : super(key: key);
+  const ProximasMissoesWidget({super.key, this.maxMissoes = 3});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -252,13 +251,13 @@ class _MissaoCardCompactoState extends ConsumerState<_MissaoCardCompacto> {
                 runSpacing: 8,
                 children: [
                   if (widget.atividade.missaoValue > 0)
-                    _RewardChip(
+                    _rewardChip(
                       label: '${widget.atividade.missaoValue} XP',
                       background: const Color(0xFFEAF6EA),
                       foreground: const Color(0xFF2E9D55),
                     ),
                   if (widget.atividade.missaoValue > 0)
-                    _RewardChip(
+                    _rewardChip(
                       label: '+10 moedas',
                       background: const Color(0xFFFFF3E0),
                       foreground: const Color(0xFFF4A261),
@@ -364,7 +363,7 @@ class _MissaoCardCompactoState extends ConsumerState<_MissaoCardCompacto> {
     return null;
   }
 
-  Widget _RewardChip({
+  Widget _rewardChip({
     required String label,
     required Color background,
     required Color foreground,
@@ -440,6 +439,7 @@ class _MissaoCardCompactoState extends ConsumerState<_MissaoCardCompacto> {
         widget.pessoaId,
         widget.atividade.id,
       );
+      if (!context.mounted) return;
       context.read<GamificationState>().applyMissionCompletion(concluida);
       await context.read<GamificationState>().loadFromBackend();
       ref.invalidate(atividadesDaPessoaProvider(widget.pessoaId));

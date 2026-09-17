@@ -10,8 +10,7 @@ import '../../utils/friendly_message.dart';
 class MissoesImprovedPage extends ConsumerStatefulWidget {
   final GamificationState? gamificationState;
 
-  const MissoesImprovedPage({Key? key, this.gamificationState})
-    : super(key: key);
+  const MissoesImprovedPage({super.key, this.gamificationState});
 
   @override
   ConsumerState<MissoesImprovedPage> createState() =>
@@ -273,7 +272,7 @@ class _CatalogoDeMissoesTab extends ConsumerWidget {
             itemCount: missoesDisponiveis.length,
             itemBuilder: (context, index) {
               final missao = missoesDisponiveis[index];
-              return _MissaoDisponibleCard(
+              return _MissaoDisponivelCard(
                 missao: missao,
                 pessoaId: pessoaId,
                 onAtribuir: () {
@@ -536,23 +535,23 @@ class _MissaoCardState extends ConsumerState<_MissaoCard> {
 }
 
 /// Card para uma missão disponível para atribuição
-class _MissaoDisponibleCard extends ConsumerStatefulWidget {
+class _MissaoDisponivelCard extends ConsumerStatefulWidget {
   final Missao missao;
   final String pessoaId;
   final VoidCallback onAtribuir;
 
-  const _MissaoDisponibleCard({
+  const _MissaoDisponivelCard({
     required this.missao,
     required this.pessoaId,
     required this.onAtribuir,
   });
 
   @override
-  ConsumerState<_MissaoDisponibleCard> createState() =>
-      _MissaoDisponibleCardState();
+  ConsumerState<_MissaoDisponivelCard> createState() =>
+      _MissaoDisponivelCardState();
 }
 
-class _MissaoDisponibleCardState extends ConsumerState<_MissaoDisponibleCard> {
+class _MissaoDisponivelCardState extends ConsumerState<_MissaoDisponivelCard> {
   bool _isLoadingAction = false;
 
   @override

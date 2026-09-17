@@ -5,7 +5,7 @@ import '/providers/auth_provider.dart';
 
 /// Widget que exibe um resumo visual das missões (contadores por status)
 class ResumoMissoesWidget extends ConsumerWidget {
-  const ResumoMissoesWidget({Key? key}) : super(key: key);
+  const ResumoMissoesWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -87,7 +87,7 @@ class ResumoMissoesWidget extends ConsumerWidget {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

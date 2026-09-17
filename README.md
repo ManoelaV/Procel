@@ -1,168 +1,388 @@
-# PROCEL - Aplicativo de Economia de Energia
+# PROCEL - Aplicativo de Economia de Energia Gamificado
 
-## O que é PROCEL?
+> **Documentação completa do frontend Flutter**
 
-PROCEL é uma aplicação mobile desenvolvida em Flutter que ajuda usuários a monitorar e economizar energia de forma gamificada. O app conversa com um back-end Java separado, hospedado neste repositório como submodule, e ainda mantém a camada Firebase para recursos legados e de suporte.
+PROCEL é uma aplicação mobile desenvolvida em Flutter que ajuda usuários a monitorar e economizar energia de forma gamificada. O app se comunica com um back-end Java/Spring Boot separado (submodule em `backend-repo/`) e mantém integração com Firebase para recursos legados.
 
-## O que já foi implementado?
+---
 
-### Estrutura Base
+## Índice da Documentação
 
-- Projeto Flutter configurado e pronto para desenvolvimento
-- Integração com Firebase (Authentication, Firestore, Cloud Functions, Dynamic Links)
-- State management com Provider
-- Arquitetura organizada com separação de responsabilidades
+1. [Arquitetura do Frontend](#-arquitetura-do-frontend)
+2. [Configuração e Execução](#-configuração-e-execução)
+3. [State Management](#-state-management)
+4. [Autenticação](#-autenticação)
+5. [Gamificação](#-gamificação)
+6. [Missões](#-missões)
+7. [Chatbot de Notificações](#-chatbot-de-notificações)
+8. [Upload de PDF e Localização de Salas](#-upload-de-pdf-e-localização-de-salas)
+9. [Backend & Endpoints](#-backend--endpoints)
+10. [Estrutura de Pastas](#-estrutura-de-pastas)
+11. [Como Contribuir](#-como-contribuir)
 
-### Autenticação e Usuários
+---
 
-- Sistema de autenticação com Firebase
-- Gerenciamento de usuários no Firestore
-- Autenticação anônima disponível
+## Arquitetura do Frontend
 
-### Páginas e Funcionalidades
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Flutter UI Layer                            │
+│  ┌─────────────┐  ┌──────────────────┐  ┌───────────────────┐   │
+│  │ Pages       │  │ Components       │  │ ChatPage          │   │
+│  │ (Telas)     │  │ (Widgets)        │  │ (Chatbot UI)      │   │
+└─────────────────────────────────────────────────────────────────┘
+           │                    │                     │
+           ▼                    ▼                     ▼
+┌─────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│ Providers       │  │ GamificationState│  │ ChatbotService   │
+│ (Riverpod 2)    │  │ (Provider/CLN)   │  │ (HTTP → Bot)     │
+└─────────────────┘  └────────┬─────────┘  └────────┬─────────┘
+                              │                     │
+                              ▼                     ▼
+                      ┌──────────────────┐  ┌──────────────────┐
+                      │ BackendSession   │  │ CHATBOT_BASE_URL │
+                      │ (SharedPreferences│  │ (porta 8000)     │
+                      │ + JWT)           │  └──────────────────┘
+                      └────────┬──────────┘
+                               │
+                               ▼
+                      ┌──────────────────┐
+                      │  API_BASE_URL    │
+                      │ (Spring Boot)    │
+                      └──────────────────┘
+```
 
-- Página de metas (adicionar, visualizar, gerenciar metas)
-- Página de notificações
-- Página de configurações do usuário
-- Página de escalas de motivação
-- Página de notícias
-- Dashboard principal
-- Componentes reutilizáveis para interface
+### Padrões de projeto
 
-### Backend e Banco de Dados
+- **State Management híbrido**:
+  - **Riverpod 2** (`flutter_riverpod: ^2.4.10`) — providers de dados assíncronos
+  - **Provider** (`provider: ^6.1.5+1`) — `GamificationState` reativo via `ChangeNotifier`
+- **Service Layer**: serviços encapsulam lógica de negócio e chamadas de API
+- **Model Layer**: DTOs (`Missao`, `PessoaMissao`, `Room`, `TimetableEntry`, `BackendLoginResult`)
 
-- Back-end Java/Spring Boot separado em `backend-repo/Procel-Ingestion`
-- PostgreSQL como banco do serviço de ingestão
-- Endpoints REST para autenticação, pessoas, presenças, sensores, medições, salas e regras
-- Firestore continua disponível para partes legadas do app e sincronizações específicas
-- Cloud Functions continuam no ecossistema Firebase quando necessário
+---
 
-### Recursos Adicionais
+## Configuração e Execução
 
-- Sistema de notificações push
-- Armazenamento local com Shared Preferences
-- Ativos organizados (imagens, vídeos, áudios, PDFs, animações Rive)
-- Logs e rastreamento de ações do usuário
-- Gerenciamento de dados com sincronização Firestore
+### Dependências principais
 
-## Como começar?
+| Pacote | Uso |
+|---|---|
+| `flutter_riverpod` ^2.4.10 | State management |
+| `provider` ^6.1.5+1 | GamificationState reativo |
+| `http` ^0.13.6 | Chamadas HTTP ao backend |
+| `dio` ^5.4.0 | Cliente HTTP (MissaoService) |
+| `shared_preferences` ^2.2.2 | Armazenamento local |
+| `file_picker` ^8.0.0 | Seleção de arquivos PDF |
+| `syncfusion_flutter_pdf` ^24.1.46 | Extração de texto PDF |
 
 ### Instalação
 
 ```bash
-# Clonar o repositório
 git clone https://github.com/ManoelaV/Procel.git
 cd Procel
-
-# Baixar o back-end como submodule
 git submodule update --init --recursive
-
-# Instalar dependências
 flutter pub get
 ```
 
 ### Executar
 
 ```bash
-# Terminal 1 - back-end
-# Se você estiver na raiz do repositório, entre na pasta do back-end.
-# Se o terminal já estiver em backend-repo/Procel-Ingestion, pule esta linha.
-
-
-# Terminal 2 - front-end
-cd ..\..\
-# Para testar o front, use sempre o backend remoto
+# Ambiente remoto (recomendado)
 flutter run --dart-define=API_BASE_URL=https://procel.servehttp.com
 
-# Com logs detalhados
-flutter run -v
+# Ambiente local
+flutter run --dart-define=API_BASE_URL=http://localhost:8080
 ```
 
 ### Compilar para Produção
 
 ```bash
-# Android
-flutter build apk --release
+flutter build apk --release   # Android
+flutter build ios --release   # iOS
+flutter build web             # Web
+```
 
-# iOS
-flutter build ios --release
+---
 
-# Web
-flutter build web
+## State Management
+
+### Riverpod (providers principais)
+
+| Provider | Tipo | Descrição |
+|---|---|---|
+| `userIdProvider` | `FutureProvider<String?>` | userId do SharedPreferences |
+| `accessTokenProvider` | `FutureProvider<String?>` | JWT do SharedPreferences |
+| `isAuthenticatedProvider` | `FutureProvider<bool>` | Verifica sessão válida |
+| `authDataProvider` | `FutureProvider<AuthData?>` | Dados completos (id, token, nome, email) |
+| `missaoServiceProvider` | `Provider<MissaoService>` | Instância do serviço de missões |
+| `missoesCatalogoProvider` | `FutureProvider<List<Missao>>` | Lista missões ativas |
+| `atividadesDaPessoaProvider(id)` | `FutureProvider.family` | Todas as atividades do usuário |
+| `atividadesPendentesProvider(id)` | `FutureProvider.family` | Apenas pendentes |
+| `atividadesEmAndamentoProvider(id)` | `FutureProvider.family` | Apenas em andamento |
+| `atividadesConcluidasProvider(id)` | `FutureProvider.family` | Apenas concluídas |
+| `missaoNotifierProvider` | `StateNotifierProvider` | Ações: iniciar, concluir, cancelar, atribuir |
+
+### Provider (gamification_state)
+
+- **`GamificationState`** (`ChangeNotifier`) — estado global: missões, badges, XP, coins, streak, consumo
+
+---
+
+## Autenticação
+
+### Fluxo completo
+
+1. **App inicia** → `BackendSession.restoreToken()` no `main()` (`lib/main.dart`)
+2. **Login/Register** → `BackendSession.login()` / `.registerAndLogin()`
+   - Salva: `accessToken`, `userId`, `email`, `displayName` no SharedPreferences
+3. **Proteção de rotas** → `authDataProvider` retorna `null` se não logado
+
+### Arquivo: `lib/services/backend_session.dart`
+
+- Classe utilitária (métodos estáticos)
+- `BackendLoginResult` — DTO com `accessToken`, `tokenType`, `userId`, `email`, `roles`
+- `_isExpiredJwt(token)` — valida expiração do token JWT (base64 decode + `exp`)
+- Timeout: `ApiConfig.TIMEOUT_SECONDS` (30s)
+
+### Arquivo: `lib/pages/backend_auth_screen.dart`
+
+- Tela de login/registro com email + password
+- Navega para `ShellPage` após login bem-sucedido
+
+---
+
+## Gamificação
+
+### `lib/services/gamification_state.dart`
+
+- **`GamificationMission`** — key, título, ícone, descrição, rewardXp, rewardCoins, progresso, buttonLabel, completed
+- **`GamificationBadge`** — ícone, nome, thresholdXp
+- **`GamificationState`** (`ChangeNotifier`) — estado global reativo
+
+### Missões integradas (5 missões fixas)
+
+| Key | Título | Ícone | Reward |
+|---|---|---|---|
+| `luz-eficiente` | Luz Eficiente | 💡 | 25 XP + 10 coins |
+| `temperatura-inteligente` | Temperatura Inteligente | ❄️ | 25 XP |
+| `sensor-scout` | Sensor Scout | 🔍 | 20 XP + 5 coins |
+| `hora-do-repouso` | Hora do Repouso | 🔌 | 25 XP + 10 coins |
+| `educar-e-compartilhar` | Educar é Compartilhar | 💬 | 15 XP |
+
+### Sistema de níveis
+
+- **Thresholds XP**: `0, 1000, 2000, 3000, 5000, 7000, 10000`
+- Badges desbloqueados automaticamente ao atingir thresholds
+- `loadFromBackend()` sincroniza missões concluídas do backend
+
+### Componentes de gamificação (main.dart)
+
+- **Home screen**: cards de progresso, badges, mini badges
+- **Página de perfil**: XP, coins, streak, consumo de energia
+
+---
+
+## Missões
+
+### `lib/services/missao_service.dart`
+
+- Cliente Dio com autenticação Bearer Token (via SharedPreferences)
+- Todos os métodos tratam `DioException` com mensagens amigáveis
+
+### Endpoints consumidos
+
+| Ação | Método | Endpoint |
+|---|---|---|
+| Listar missões ativas | GET | `/api/missoes?ativo=true` |
+| Obter missão | GET | `/api/missoes/{id}` |
+| Listar atividades | GET | `/api/pessoas/{pessoaId}/atividades` |
+| Atribuir missão | POST | `/api/pessoas/{pessoaId}/atividades` |
+| Atualizar status | PUT | `/api/pessoas/{pessoaId}/atividades/{atividadeId}` |
+| Remover atividade | DELETE | `/api/pessoas/{pessoaId}/atividades/{atividadeId}` |
+
+### `lib/models/missao_model.dart`
+
+- **`Missao`** — id, titulo, descricao, tipo, value, ativo, createdAt
+- **`AtividadeStatus`** (enum) — pendente, emAndamento, concluida, cancelada
+  - `apiValue` → strings para API: `PENDENTE`, `EM_ANDAMENTO`, `CONCLUIDA`, `CANCELADA`
+- **`PessoaMissao`** — atividade atribuída ao usuário (status, timestamps, dados da missão)
+- **`AtribuirMissaoRequest`** / **`UpdateAtividadeRequest`** — DTOs para criar/atualizar
+
+### Páginas e Components
+
+| Arquivo | Descrição |
+|---|---|
+| `lib/pages/missoes/missoes_improved_page.dart` | Página principal com 4 abas: Pendentes, Em Andamento, Concluídas, Disponíveis |
+| `lib/components/missoes_lista_widget.dart` | Lista de missões com cards e status coloridos |
+| `lib/components/proximas_missoes_widget.dart` | Missões em destaque na home (máx 3, ordenadas por prioridade) |
+| `lib/components/resumo_missoes_widget.dart` | Contadores visuais + barra de progresso |
+
+### Estados de uma missão
+
+| Status | Badge | Ações disponíveis |
+|---|---|---|
+| **Pendente** | Laranja | `[Iniciar]` |
+| **Em Andamento** | Azul | `[Concluir]` |
+| **Concluída** | Verde | Selo (sem ações) |
+| **Cancelada** | Vermelho | (sem ações) |
+
+### `lib/providers/missao_provider.dart`
+
+- `missaoNotifierProvider` — `StateNotifier` para ações de missões
+- Invalidação automática dos providers após ações (recarrega lista)
+- Integração com `GamificationState.applyMissionCompletion()`
+
+---
+
+## Chatbot de Notificações
+
+### `lib/services/chatbot_service.dart`
+
+- **`ChatbotService`** — cliente HTTP para o chatbot (porta 8000)
+- **`ChatbotResponse`** — DTO da resposta do chatbot
+- Usa `...?variable != null ? {key: value} : null` (null-aware spread) para campos opcionais
+
+### Endpoints do chatbot
+
+| Função | Método | Endpoint |
+|---|---|---|
+| Enviar mensagem | POST | `/chat` |
+| Notificação proativa | POST | `/chat/proactive` |
+| Listar personas | GET | `/personas` |
+| Listar target-profiles | GET | `/target-profiles` |
+| Notificações salvas | GET | `/notifications/saved` |
+
+### Arquivo: `lib/pages/chat_page.dart`
+
+- Interface de chat com mensagens do usuário e do bot
+- Histórico de conversa
+- Mensagens proativas do backend
+- `withValues(alpha: ...)` para sombras (API atualizada)
+
+---
+
+## Upload de PDF e Localização de Salas
+
+### Fluxo completo (PDF → sala do aluno)
 
 ```
 
-## Sincronização do Backend
-
-O back-end agora é um repositório independente em `backend-repo/`. Usamos um **GitHub Action** para manter o front-end sempre sincronizado com as atualizações do back-end.
-
-### Como funciona
-
-- **Manual**: O workflow `.github/workflows/sync-backend.yml` agora roda apenas sob demanda, evitando execuções automáticas e e-mails quando o projeto está fechado.
-- **Local**: Você pode rodar o script `scripts/pull-backend-updates.ps1` quando abrir o projeto no VS Code e quiser puxar as atualizações na hora:
-
-  ```powershell
-  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\pull-backend-updates.ps1
-  ```
-
-- **Commits automáticos**: Se houver mudanças, o Action comita e faz push automaticamente na branch main do front quando for acionado manualmente.
-
-### Se o backend for privado
-
-Adicione um secret `BACKEND_TOKEN` nas configurações do repositório front (Settings > Secrets and variables > Actions):
-
-- Gere um token de leitura no GitHub (Settings > Developer settings > Personal access tokens > Tokens (classic))
-- Adicione o token com o nome `BACKEND_TOKEN`
-
-Assim, o Action conseguirá clonar repositórios privados.
-
-## Estrutura do Projeto
-
-- `lib/auth/` - Autenticação Firebase
-- `lib/backend/` - Camada de APIs, schemas e integração com serviços
-- `lib/config/` - Configuração da URL base do back-end e endpoints
-- `lib/pages/` - Telas do aplicativo
-- `lib/components/` - Componentes reutilizáveis
-- `lib/providers/` - State management
-- `lib/services/` - Serviços e APIs
-- `lib/models/` - Modelos de dados
-- `assets/` - Imagens, vídeos, áudios, fontes
-- `backend-repo/` - Back-end Java/Spring Boot (sincronizado automaticamente)
-- `firebase/` - Configurações e regras Firestore
-
-## Documentação Arquitetural
-
-- [SDD e C4 da aplicação](docs/arquitetura/sdd-c4.md)
-
-## Tecnologias
-
-- Flutter e Dart
-- Firebase (Authentication, Firestore, Cloud Functions)
-- Java 21 + Spring Boot + PostgreSQL no back-end de ingestão
-- Provider para state management
-- Shared Preferences para armazenamento local
-
-## Fluxo Fechado
-
-O caminho principal do app agora fica assim:
-
-1. O Flutter sobe com `API_BASE_URL` apontando para o back-end remoto de testes.
-2. O back-end expõe a API em `/api/...` e persiste no PostgreSQL.
-3. O front consome os endpoints via `lib/config/api_config.dart`.
-4. O submodule `backend-repo/` mantém o código do back-end versionado junto do app.
-
-Base remota de testes:
-
-```text
-https://procel.servehttp.com
+1. Usuário seleciona PDF
+   ↓
+2. PdfParserService.extractTextFromBytes()
+   "Extrai texto do PDF via Syncfusion"
+   ↓
+3. extractMatricula(text) → "22202589"
+   extractPeriodoLetivo(text) → "2026/1"
+   ↓
+4. parseTimetableFromText(text) → List<TimetableEntry>
+   "Parseia: código, turma, disciplina, dia, horário"
+   ↓
+5. ScheduleRoomService.fetchRoomsForSchedule(entries, matricula, periodo)
+   ↓
+6. Backend resolve:
+   GET /api/pessoas/{matricula}/disciplinas?periodoLetivo=...
+   (auto-vínculo se vazio)
+   GET /api/catalog/disciplinas/{id}/periodos-aula
+   ↓
+7. Match: nome da disciplina (normalizado) + dia da semana + horário
+   ↓
+8. Resultado: Map<TimetableEntry, Room?>
 ```
 
-Base local opcional, só se você quiser rodar o backend na máquina:
+### Arquivo: `lib/services/pdf_parser_service.dart`
 
-```text
-http://localhost:8080
+- **`extractTextFromBytes(bytes)`** — extrai texto do PDF via Syncfusion
+- **`extractMatricula(text)`** — regex para "Aluno XXXX - ..." no cabeçalho
+- **`extractPeriodoLetivo(text)`** — regex para "2026/1" no cabeçalho
+- **`parseTimetableFromText(text)`** — parse principal:
+  1. Identifica seções (MANHÃ/TARDE/NOITE)
+  2. Detecta cabeçalhos de dias (ex: "QuintaSegundaHorarios SextaQuartaTerca")
+  3. Extrai linhas de horário (ex: "07:30-09:00")
+  4. Parseia disciplinas (formato: `11100059 - T2 - CÁLCULO 2`)
+  5. Cria `TimetableEntry` por disciplina/dia/horário
+
+### Arquivo: `lib/models/timetable_entry.dart`
+
+```dart
+class TimetableEntry {
+  String? turma;       // ex: "T2"
+  String? disciplina;  // ex: "CÁLCULO 2"
+  String? codigo;      // ex: "11100059"
+  String? dia;         // ex: "Segunda"
+  String? startTime;   // ex: "07:30"
+  String? endTime;     // ex: "09:00"
+}
 ```
 
-## Próximos Passos
+### Arquivo: `lib/services/schedule_room_service.dart`
 
-O projeto está em desenvolvimento contínuo. Novas funcionalidades serão adicionadas conforme o projeto avança.
+- **`fetchRoomsForSchedule()`** — fluxo de busca de salas:
+  1. GET `/api/pessoas/{matricula}/disciplinas` — disciplinas já vinculadas
+  2. Se vazio → auto-vincula via POST no catálogo
+  3. GET `/api/catalog/disciplinas/{id}/periodos-aula` — horários reais com salas
+  4. **Match final:**
+     - Normaliza nome da disciplina (remove acentos)
+     - Bate horários (início PDF < fim aula AND fim PDF > início aula)
+     - Bate dia da semana (domingo=0, segunda=1, ..., sábado=6)
+     - Bate turma (se especificada)
+  5. Retorna `Map<TimetableEntry, Room?>`
+
+### Arquivo: `lib/models/room_model.dart`
+
+```dart
+class Room {
+  String id;
+  String name;       // ex: "Sala 301"
+  String? building;  // ex: "UAF1"
+  String? floor;     // ex: "3º andar"
+  String? type;
+  int? capacity;
+}
+```
+
+### Arquivo: `lib/pages/upload_pdf_rooms/upload_pdf_rooms_widget.dart`
+
+- Tela com botão **"Enviar PDF de horários"**
+- Mostra status progressivo: "Extraindo texto...", "Parseando horários...", "Buscando salas..."
+- Resultado: lista com disciplina, horário, dia, sala (verde=ok, vermelho=não encontrada)
+
+### Rotas
+
+```dart
+// lib/main.dart
+routes: {
+  '/upload-pdf-rooms': (context) => Scaffold(body: UploadPdfRoomsWidget()),
+}
+```
+
+---
+
+## Backend & Endpoints
+
+### `lib/config/api_config.dart`
+
+- **Backend base**: `--dart-define=API_BASE_URL=https://...`
+- **Chatbot base**: `--dart-define=CHATBOT_BASE_URL=http://...` (default: `http://localhost:8000`)
+- Timeout padrão: 30s
+- Headers: JSON + Authorization (Bearer token)
+
+### Endpoints backend
+
+| Recurso | Tipo | Endpoint |
+|---|---|---|
+| Login | POST | `/api/auth/login` |
+| Registro | POST | `/api/auth/register` |
+| Health | GET | `/actuator/health` |
+| Pessoas | GET | `/api/pessoas` |
+| Gamificação | GET | `/api/gamification/me` |
+| Missões | GET | `/api/missoes` |
+| Salas | GET | `/api/rooms` |
+
+### Chatbot endpoints
+
+| Função | Método | Endpoint |
+|---|---|---|
+| Enviar mensagem | POST | `http://localhost:8000/chat` |
+| Notificação proativa | POST | `/chat/proactive` |

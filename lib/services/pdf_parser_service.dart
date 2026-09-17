@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../models/timetable_entry.dart';
 
@@ -15,7 +15,7 @@ class PdfParserService {
       document.dispose();
       return text;
     } catch (e) {
-      print('Erro ao extrair texto: $e');
+      debugPrint('Erro ao extrair texto: $e');
       return '';
     }
   }

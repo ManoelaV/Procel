@@ -55,9 +55,9 @@ class MissaoService {
       } else {
         throw Exception('Não foi possível carregar as missões.');
       }
-    } on DioException catch (e) {
+    } on DioException catch (_) {
       throw Exception('Não foi possível carregar as missões.');
-    } catch (e) {
+    } catch (_) {
       throw Exception('Não foi possível carregar as missões.');
     }
   }
@@ -76,9 +76,9 @@ class MissaoService {
       } else {
         throw Exception('Não foi possível abrir a missão.');
       }
-    } on DioException catch (e) {
+    } on DioException catch (_) {
       throw Exception('Não foi possível abrir a missão.');
-    } catch (e) {
+    } catch (_) {
       throw Exception('Não foi possível abrir a missão.');
     }
   }
@@ -113,9 +113,9 @@ class MissaoService {
       } else {
         throw Exception('Não foi possível carregar suas atividades.');
       }
-    } on DioException catch (e) {
+    } on DioException catch (_) {
       throw Exception('Não foi possível carregar suas atividades.');
-    } catch (e) {
+    } catch (_) {
       throw Exception('Não foi possível carregar suas atividades.');
     }
   }
@@ -137,9 +137,9 @@ class MissaoService {
       } else {
         throw Exception('Não foi possível abrir a atividade.');
       }
-    } on DioException catch (e) {
+    } on DioException catch (_) {
       throw Exception('Não foi possível abrir a atividade.');
-    } catch (e) {
+    } catch (_) {
       throw Exception('Não foi possível abrir a atividade.');
     }
   }
@@ -162,9 +162,9 @@ class MissaoService {
       } else {
         throw Exception('Não foi possível atribuir a missão.');
       }
-    } on DioException catch (e) {
+    } on DioException catch (_) {
       throw Exception('Não foi possível atribuir a missão.');
-    } catch (e) {
+    } catch (_) {
       throw Exception('Não foi possível atribuir a missão.');
     }
   }
@@ -189,9 +189,9 @@ class MissaoService {
       } else {
         throw Exception('Não foi possível atualizar a atividade.');
       }
-    } on DioException catch (e) {
+    } on DioException catch (_) {
       throw Exception('Não foi possível atualizar a atividade.');
-    } catch (e) {
+    } catch (_) {
       throw Exception('Não foi possível atualizar a atividade.');
     }
   }
@@ -241,9 +241,9 @@ class MissaoService {
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Não foi possível remover a atividade.');
       }
-    } on DioException catch (e) {
+    } on DioException catch (_) {
       throw Exception('Não foi possível remover a atividade.');
-    } catch (e) {
+    } catch (_) {
       throw Exception('Não foi possível remover a atividade.');
     }
   }

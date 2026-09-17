@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
@@ -28,13 +30,13 @@ class ScheduleRoomService {
       headers: headers,
     );
 
-    print(
+    debugPrint(
       '[DEBUG] Disciplinas do aluno encontradas: ${disciplinasAluno.length}',
     );
 
     // 2. Se vazio, tenta vincular automaticamente
     if (disciplinasAluno.isEmpty) {
-      print(
+      debugPrint(
         '[DEBUG] Nenhuma disciplina vinculada. Buscando catálogo para auto-vínculo...',
       );
       await _autoVincularDisciplinas(
@@ -50,13 +52,13 @@ class ScheduleRoomService {
         periodoLetivo: periodoLetivo,
         headers: headers,
       );
-      print(
+      debugPrint(
         '[DEBUG] Após auto-vínculo, disciplinas encontradas: ${disciplinasAluno.length}',
       );
     }
 
     for (final d in disciplinasAluno) {
-      print(
+      debugPrint(
         '[DEBUG]   -> id=${d.disciplinaId} nome="${d.disciplinaNome}" turma="${d.turma}"',
       );
     }
@@ -70,11 +72,11 @@ class ScheduleRoomService {
         headers: headers,
       );
 
-      print(
+      debugPrint(
         '[DEBUG] Disciplina ${disc.disciplinaId} (${disc.disciplinaNome}): ${periodos.length} períodos',
       );
       for (final p in periodos) {
-        print(
+        debugPrint(
           '[DEBUG]   -> data=${p.data} hora=${p.horaInicio}-${p.horaFim} sala="${p.compartimentoNome}" turma="${p.turma}"',
         );
         if (p.compartimentoNome != null && p.compartimentoNome!.isNotEmpty) {
@@ -88,7 +90,7 @@ class ScheduleRoomService {
     final Map<TimetableEntry, Room?> result = {};
 
     for (final entry in entries) {
-      print(
+      debugPrint(
         '[DEBUG] Entry: codigo="${entry.codigo}" disciplina="${entry.disciplina}" turma="${entry.turma}" dia="${entry.dia}" horario=${entry.startTime}-${entry.endTime}',
       );
       final room = _findRoomForEntry(
@@ -96,7 +98,7 @@ class ScheduleRoomService {
         aulasPorDisciplina: aulasPorDisciplina,
         disciplinasAluno: disciplinasAluno,
       );
-      print('[DEBUG]   -> Sala encontrada: ${room?.name ?? "NENHUMA"}');
+      debugPrint('[DEBUG]   -> Sala encontrada: ${room?.name ?? "NENHUMA"}');
       result[entry] = room;
     }
 
@@ -122,9 +124,9 @@ class ScheduleRoomService {
     final catalogUri = Uri.parse(
       '${ApiConfig.baseUrl}${ApiConfig.API_PREFIX}/catalog/disciplinas',
     );
-    print('[DEBUG] GET $catalogUri');
+    debugPrint('[DEBUG] GET $catalogUri');
     final catalogResponse = await http.get(catalogUri, headers: headers);
-    print('[DEBUG] Status catálogo: ${catalogResponse.statusCode}');
+    debugPrint('[DEBUG] Status catálogo: ${catalogResponse.statusCode}');
 
     if (catalogResponse.statusCode != 200) return;
 
@@ -152,7 +154,7 @@ class ScheduleRoomService {
           }
 
           if (turma == null) {
-            print('[DEBUG] Pulando disciplina $codigo sem turma definida');
+            debugPrint('[DEBUG] Pulando disciplina $codigo sem turma definida');
             continue;
           }
 
@@ -188,15 +190,15 @@ class ScheduleRoomService {
       'periodoLetivo': periodoLetivo,
     });
 
-    print('[DEBUG] POST $uri body=$body');
+    debugPrint('[DEBUG] POST $uri body=$body');
     final response = await http.post(uri, headers: headers, body: body);
-    print('[DEBUG] Status vínculo: ${response.statusCode} - ${response.body}');
+    debugPrint('[DEBUG] Status vínculo: ${response.statusCode} - ${response.body}');
 
     if (response.statusCode == 409) {
       // 409 = já vinculado, tudo bem
-      print('[DEBUG] Disciplina $disciplinaId já vinculada ao aluno');
+      debugPrint('[DEBUG] Disciplina $disciplinaId já vinculada ao aluno');
     } else if (response.statusCode != 200) {
-      print(
+      debugPrint(
         '[DEBUG] Aviso: Falha ao vincular disciplina $disciplinaId: ${response.statusCode}',
       );
     }
@@ -219,7 +221,7 @@ class ScheduleRoomService {
         token = prefs.getString(key);
       }
     } catch (e) {
-      print('Erro ao obter token: $e');
+      debugPrint('Erro ao obter token: $e');
     }
 
     final headers = <String, String>{
@@ -246,9 +248,9 @@ class ScheduleRoomService {
       '?periodoLetivo=$periodoLetivo',
     );
 
-    print('[DEBUG] GET $uri');
+    debugPrint('[DEBUG] GET $uri');
     final response = await http.get(uri, headers: headers);
-    print('[DEBUG] Status: ${response.statusCode}');
+    debugPrint('[DEBUG] Status: ${response.statusCode}');
 
     if (response.statusCode != 200) {
       throw Exception(
@@ -257,7 +259,7 @@ class ScheduleRoomService {
     }
 
     final List<dynamic> data = jsonDecode(response.body);
-    print('[DEBUG] Resposta: ${response.body}');
+    debugPrint('[DEBUG] Resposta: ${response.body}');
     return data.map((json) => _DisciplinaAluno.fromJson(json)).toList();
   }
 
@@ -269,12 +271,12 @@ class ScheduleRoomService {
       '${ApiConfig.baseUrl}${ApiConfig.API_PREFIX}/catalog/disciplinas/$disciplinaId/periodos-aula',
     );
 
-    print('[DEBUG] GET $uri');
+    debugPrint('[DEBUG] GET $uri');
     final response = await http.get(uri, headers: headers);
-    print('[DEBUG] Status: ${response.statusCode}');
+    debugPrint('[DEBUG] Status: ${response.statusCode}');
 
     if (response.statusCode != 200) {
-      print(
+      debugPrint(
         '[DEBUG] Aviso: Falha ao buscar períodos da disciplina $disciplinaId: ${response.statusCode}',
       );
       return [];
@@ -290,11 +292,11 @@ class ScheduleRoomService {
     required List<_DisciplinaAluno> disciplinasAluno,
   }) {
     final int? disciplinaId = _findDisciplinaId(entry, disciplinasAluno);
-    print('[DEBUG] disciplinaId encontrado: $disciplinaId');
+    debugPrint('[DEBUG] disciplinaId encontrado: $disciplinaId');
     if (disciplinaId == null) return null;
 
     final periodos = aulasPorDisciplina[disciplinaId];
-    print(
+    debugPrint(
       '[DEBUG] Períodos para disciplinaId $disciplinaId: ${periodos?.length ?? 0}',
     );
     if (periodos == null || periodos.isEmpty) return null;
@@ -367,8 +369,7 @@ class ScheduleRoomService {
           disc.disciplinaNome,
         ).split(' ').where((w) => w.length >= 4).toSet();
         final overlap = palavrasPdf.intersection(palavrasApi);
-        if (overlap.length >= 2 ||
-            (overlap.length >= 1 && overlap.length == palavrasApi.length)) {
+        if (overlap.isNotEmpty) {
           return disc.disciplinaId;
         }
       }
